@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0a">
+<title>Road Eagles MC Thailand</title>
+<style>
+:root{--bg:#0a0a0a;--sf:#141414;--sf2:#1c1c1c;--sf3:#242424;--bd:#2a2a2a;--gold:#c9a227;--gl:#e8c547;--gd:#7a5f10;--red:#c0392b;--rl:#e74c3c;--grn:#27ae60;--grnl:#2ecc71;--blu:#2980b9;--blul:#3498db;--txt:#f0f0f0;--muted:#888;--dim:#444;--club:#1e3a5f;--charity:#1e3d1e}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;min-height:100vh;overscroll-behavior:none}
+::-webkit-scrollbar{width:3px;height:3px}::-webkit-scrollbar-thumb{background:var(--bd)}
+#ls{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px;background:radial-gradient(ellipse at center,#1a1200 0%,#080808 70%)}
+#ls img{width:130px;height:130px;border-radius:50%;border:3px solid var(--gold);box-shadow:0 0 40px rgba(201,162,39,.35);margin-bottom:18px}
+#ls h1{font-size:20px;color:var(--gold);letter-spacing:3px;text-transform:uppercase;text-align:center;margin-bottom:3px}
+.sub{font-size:11px;color:var(--muted);letter-spacing:4px;text-transform:uppercase;text-align:center;margin-bottom:26px}
+.pdots{display:flex;gap:12px;margin-bottom:22px}
+.pd{width:14px;height:14px;border-radius:50%;border:2px solid var(--gold);background:transparent;transition:background .15s}.pd.on{background:var(--gold)}
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:230px;width:100%}
+.pb{background:var(--sf2);border:1px solid var(--bd);color:var(--txt);font-size:22px;padding:17px;border-radius:12px;cursor:pointer;font-weight:300;transition:all .12s}.pb:active{background:var(--gd);border-color:var(--gold);transform:scale(.94)}.pb.del{font-size:15px;color:var(--muted)}
+#lerr{color:var(--rl);font-size:12px;margin-top:10px;min-height:18px;text-align:center}
+#lbl{color:var(--gold);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px}
+#app{display:none;flex-direction:column;min-height:100vh}
+.tb{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100}
+.tb img{width:34px;height:34px;border-radius:50%;border:1px solid var(--gold)}
+.tb-i{flex:1}.tb-i h2{font-size:12px;color:var(--gold);font-weight:700;letter-spacing:1.5px;text-transform:uppercase}.tb-i p{font-size:10px;color:var(--muted)}
+.ub{font-size:10px;color:var(--gl);background:var(--sf2);padding:4px 9px;border-radius:20px;border:1px solid var(--gd);white-space:nowrap}
+.ib{background:none;border:1px solid var(--bd);color:var(--muted);padding:6px 10px;border-radius:8px;cursor:pointer;font-size:14px}
+.content{flex:1;padding:12px 12px 82px;overflow-y:auto}
+.scr{display:none}.scr.on{display:block}
+.bn{position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--sf);border-top:1px solid var(--bd);display:grid;grid-template-columns:repeat(5,1fr)}
+.nb{display:flex;flex-direction:column;align-items:center;padding:8px 4px 6px;cursor:pointer;border:none;background:none;color:var(--muted);font-size:9px;gap:3px}.nb .ni{font-size:19px;line-height:1}.nb.on{color:var(--gold)}.nb:active{opacity:.7}
+.fab{position:fixed;right:16px;bottom:74px;z-index:99;width:52px;height:52px;border-radius:50%;background:var(--gold);color:#000;border:none;font-size:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 24px rgba(201,162,39,.5);font-weight:700}.fab:active{transform:scale(.93)}
+.balbar{background:linear-gradient(135deg,#1a1200,#0d0800);border:1px solid var(--gd);border-radius:14px;padding:16px;margin-bottom:12px}
+.balbar h3{font-size:10px;color:var(--gd);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px}
+.brow{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(201,162,39,.1)}.brow:last-child{border:none}
+.blbl{font-size:12px;color:var(--muted)}.bamt{font-size:17px;font-weight:700;color:var(--gl)}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.scard{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:13px}
+.slbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
+.sval{font-size:19px;font-weight:700}.sval.g{color:var(--grnl)}.sval.r{color:var(--rl)}.sval.gold{color:var(--gold)}.sval.b{color:var(--blul)}
+.txi{background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:11px;margin-bottom:7px;display:flex;align-items:center;gap:10px}
+.txic{font-size:20px;width:34px;text-align:center;flex-shrink:0}
+.txin{flex:1;min-width:0}.txd{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.txm{font-size:10px;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.txa{font-size:14px;font-weight:700;flex-shrink:0}.txa.p{color:var(--grnl)}.txa.n{color:var(--rl)}
+.atag{font-size:9px;color:var(--dim);margin-top:3px}
+.ab{display:inline-flex;align-items:center;gap:3px;font-size:9px;padding:2px 7px;border-radius:20px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.ab.club{background:var(--club);color:#7eb8f7;border:1px solid #2a5a8f}
+.ab.charity{background:var(--charity);color:#7ed87e;border:1px solid #3d7a3d}
+.tag{display:inline-block;font-size:9px;padding:1px 6px;border-radius:10px;font-weight:600;text-transform:uppercase}
+.tag.in{background:rgba(39,174,96,.12);color:var(--grnl);border:1px solid rgba(39,174,96,.25)}
+.tag.out{background:rgba(192,57,43,.12);color:var(--rl);border:1px solid rgba(192,57,43,.25)}
+.empty{text-align:center;padding:36px 20px;color:var(--dim)}.ei{font-size:38px;margin-bottom:10px}
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.stitle{font-size:15px;font-weight:600}
+.tabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px}.tabs::-webkit-scrollbar{display:none}
+.tab{padding:6px 13px;border-radius:20px;border:1px solid var(--bd);background:none;color:var(--muted);font-size:12px;cursor:pointer;white-space:nowrap}.tab.on{background:var(--gd);border-color:var(--gold);color:var(--gl);font-weight:600}
+.mc{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:13px;margin-bottom:8px;display:flex;align-items:center;gap:11px}
+.mav{width:42px;height:42px;border-radius:50%;background:var(--gd);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:var(--gl);flex-shrink:0}
+.min{flex:1}.mn{font-size:14px;font-weight:600}.mr{font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:1px}
+.ms{font-size:10px;padding:3px 8px;border-radius:20px;border:1px solid}
+.ms.paid{color:var(--grnl);border-color:var(--grn);background:rgba(39,174,96,.1)}
+.ms.unpaid{color:var(--rl);border-color:var(--red);background:rgba(192,57,43,.1)}
+.ms.prospect{color:#f39c12;border-color:#e67e22;background:rgba(243,156,18,.1)}
+.pc{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:13px;margin-bottom:8px}
+.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.pn{font-size:14px;font-weight:600}
+.vrow{border-top:1px solid var(--bd);padding-top:8px;margin-top:8px}.vn{font-size:12px;font-weight:600;margin-bottom:4px}
+.pps{display:flex;gap:12px;flex-wrap:wrap}.pp{font-size:11px;color:var(--muted)}.pv{color:var(--txt);font-weight:500}
+.pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;text-transform:uppercase;background:rgba(52,152,219,.15);color:var(--blul);border:1px solid rgba(52,152,219,.3)}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:200;display:none;align-items:flex-end}.mo.on{display:flex}
+.modal{background:var(--sf);border-radius:20px 20px 0 0;padding:18px;width:100%;max-height:92vh;overflow-y:auto}
+.mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.mt{font-size:16px;font-weight:600;color:var(--gold)}.mc2{background:var(--sf3);border:none;color:var(--muted);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px}
+.fg{margin-bottom:12px}
+label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
+input,select,textarea{width:100%;background:var(--sf2);border:1px solid var(--bd);color:var(--txt);font-size:14px;padding:11px 12px;border-radius:10px;outline:none;font-family:inherit;appearance:none;-webkit-appearance:none}
+input:focus,select:focus,textarea:focus{border-color:var(--gd)}
+textarea{resize:none;height:66px}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' fill='none' stroke-width='2'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+.tg{display:flex;gap:8px}
+.tgb{flex:1;padding:10px;border-radius:10px;border:1px solid var(--bd);background:var(--sf2);color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;text-align:center;transition:all .15s}
+.tgb.club{border-color:#2a5a8f;background:var(--club);color:#7eb8f7}
+.tgb.charity{border-color:#3d7a3d;background:var(--charity);color:#7ed87e}
+.tgb.tin{border-color:var(--grn);background:rgba(39,174,96,.15);color:var(--grnl)}
+.tgb.tout{border-color:var(--red);background:rgba(192,57,43,.15);color:var(--rl)}
+.tgb.tmem{border-color:var(--gold);background:rgba(201,162,39,.12);color:var(--gl)}
+.tgb.tvis{border-color:var(--blu);background:rgba(41,128,185,.12);color:var(--blul)}
+.btn{width:100%;padding:13px;border-radius:12px;border:none;font-size:14px;font-weight:600;cursor:pointer;margin-top:6px;font-family:inherit}
+.btn-gold{background:var(--gold);color:#000}.btn-gold:active{background:var(--gd)}
+.btn-red{background:var(--red);color:#fff}
+.btn-out{background:none;border:1px solid var(--bd);color:var(--muted)}
+.fmi{background:var(--sf2);border:1px solid var(--bd);border-radius:12px;padding:13px;margin-bottom:8px;display:flex;align-items:center;gap:11px;cursor:pointer;width:100%;text-align:left}
+.fmi:active{background:var(--sf3)}.fmic{font-size:22px;width:34px;text-align:center}
+.fml{font-size:14px;font-weight:500}.fms{font-size:11px;color:var(--muted);margin-top:1px}
+.rb{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:13px;margin-bottom:8px;display:flex;align-items:center;gap:11px;cursor:pointer;width:100%;text-align:left}
+.rb:active{background:var(--sf2)}.rbi{font-size:22px;width:34px;text-align:center}
+.notice{background:rgba(201,162,39,.07);border:1px solid rgba(201,162,39,.2);border-radius:10px;padding:11px 13px;margin-bottom:11px;font-size:12px;color:var(--gold);display:flex;gap:8px;align-items:flex-start;line-height:1.5}
+.ec{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:13px;margin-bottom:8px}
+.en{font-size:14px;font-weight:600;margin-bottom:6px}.em{font-size:11px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap}
+.sn{background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:13px;margin-bottom:10px}
+.sn h4{font-size:12px;color:var(--gold);margin-bottom:6px}.sn p,.sn li{font-size:12px;color:var(--muted);line-height:1.7}.sn ol,.sn ul{padding-left:16px}
+.dlink{background:none;border:none;color:var(--rl);font-size:10px;padding:2px 0 6px 14px;cursor:pointer;display:block}
+.divider{height:1px;background:var(--bd);margin:14px 0}
+.irow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sw{position:relative;margin-bottom:12px}.sw input{padding-left:34px}
+.sw::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="ls">
+  <img id="llogo" src="/mnt/user-data/uploads/Logo-480x480.png" alt="Road Eagles MC Thailand">
+  <h1>Road Eagles MC</h1>
+  <div class="sub">Thailand · Est. 2007 · RRR</div>
+  <div id="lbl">Enter PIN</div>
+  <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div><div class="pd" id="d4"></div><div class="pd" id="d5"></div></div>
+  <div class="pgrid">
+    <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
+    <button class="pb" onclick="pp('4')">4</button><button class="pb" onclick="pp('5')">5</button><button class="pb" onclick="pp('6')">6</button>
+    <button class="pb" onclick="pp('7')">7</button><button class="pb" onclick="pp('8')">8</button><button class="pb" onclick="pp('9')">9</button>
+    <button class="pb" style="font-size:10px;color:var(--muted)">RRR</button><button class="pb" onclick="pp('0')">0</button><button class="pb del" onclick="pd()">⌫</button>
+  </div>
+  <div id="lerr"></div>
+</div>
+
+<div id="app">
+  <div class="tb">
+    <img id="tlogo" src="/mnt/user-data/uploads/Logo-480x480.png" alt="">
+    <div class="tb-i"><h2>Road Eagles MC</h2><p id="tdate"></p></div>
+    <div class="ub" id="tuser">—</div>
+    <button class="ib" onclick="logout()">⏻</button>
+  </div>
+  <div class="content">
+
+    <div class="scr on" id="scr-dash">
+      <div class="balbar">
+        <h3>📊 Account Balances</h3>
+        <div class="brow"><span class="blbl">🏍️ Club Account</span><span class="bamt" id="db-cb">฿0</span></div>
+        <div class="brow"><span class="blbl">❤️ Charity Account</span><span class="bamt" id="db-hb">฿0</span></div>
+      </div>
+      <div class="sgrid">
+        <div class="scard"><div class="slbl">Members</div><div class="sval gold" id="db-mem">0</div></div>
+        <div class="scard"><div class="slbl">Prospects</div><div class="sval b" id="db-pros">0</div></div>
+      </div>
+      <div class="sgrid">
+        <div class="scard"><div class="slbl">Month Income</div><div class="sval g" id="db-in">฿0</div></div>
+        <div class="scard"><div class="slbl">Month Expense</div><div class="sval r" id="db-out">฿0</div></div>
+      </div>
+      <div class="sgrid">
+        <div class="scard"><div class="slbl">Fees Collected</div><div class="sval gold" id="db-fees">฿0</div></div>
+        <div class="scard"><div class="slbl">Merch Sales</div><div class="sval g" id="db-merch">฿0</div></div>
+      </div>
+      <div class="sh"><div class="stitle">Recent Entries</div></div>
+      <div id="db-tx"><div class="empty"><div class="ei">📋</div>No transactions yet</div></div>
+    </div>
+
+    <div class="scr" id="scr-ledger">
+      <div class="sw"><input type="text" id="txs" placeholder="Search…" oninput="renderLedger()"></div>
+      <div class="tabs" id="ledger-tabs">
+        <button class="tab on" onclick="setLTab(this,'all')">All</button>
+        <button class="tab" onclick="setLTab(this,'club')">🏍️ Club</button>
+        <button class="tab" onclick="setLTab(this,'charity')">❤️ Charity</button>
+        <button class="tab" onclick="setLTab(this,'in')">⬆️ In</button>
+        <button class="tab" onclick="setLTab(this,'out')">⬇️ Out</button>
+        <button class="tab" onclick="setLTab(this,'merch')">👕 Merch</button>
+        <button class="tab" onclick="setLTab(this,'donation')">🤝 Donations</button>
+        <button class="tab" onclick="setLTab(this,'event')">🎉 Events</button>
+        <button class="tab" onclick="setLTab(this,'fee')">🪪 Fees</button>
+      </div>
+      <div id="ledger-list"></div>
+    </div>
+
+    <div class="scr" id="scr-members">
+      <div class="notice">📋 2026 fee: <strong>฿<span id="fee-d">2,000</span></strong> · Pro-rated by joining quarter</div>
+      <div class="sw"><input type="text" id="mems" placeholder="Search members…" oninput="renderMembers()"></div>
+      <div class="tabs" id="mem-tabs">
+        <button class="tab on" onclick="setMTab(this,'all')">All</button>
+        <button class="tab" onclick="setMTab(this,'member')">Members</button>
+        <button class="tab" onclick="setMTab(this,'prospect')">Prospects</button>
+        <button class="tab" onclick="setMTab(this,'unpaid')">Unpaid</button>
+      </div>
+      <div id="mem-list"></div>
+    </div>
+
+    <div class="scr" id="scr-merch">
+      <div class="tabs" id="merch-tabs">
+        <button class="tab on" onclick="setRTab(this,'all')">All</button>
+        <button class="tab" onclick="setRTab(this,'shirt')">👕 Shirts</button>
+        <button class="tab" onclick="setRTab(this,'hat')">🧢 Hats</button>
+        <button class="tab" onclick="setRTab(this,'keyring')">🔑 Keyrings</button>
+        <button class="tab" onclick="setRTab(this,'other')">📦 Other</button>
+      </div>
+      <div id="merch-list"></div>
+      <div id="admin-merch" style="display:none;margin-top:12px">
+        <button class="btn btn-out" onclick="openAddProductModal()">+ Add New Product</button>
+      </div>
+    </div>
+
+    <div class="scr" id="scr-events">
+      <div class="sh"><div class="stitle">Events & Rides</div></div>
+      <div id="event-list"><div class="empty"><div class="ei">🎉</div>No events yet</div></div>
+      <button class="btn btn-out" style="margin-top:10px" onclick="openEventModal()">+ Add Event</button>
+    </div>
+
+    <div class="scr" id="scr-more">
+      <div class="stitle" style="margin-bottom:12px">Reports</div>
+      <button class="rb" onclick="showReport('monthly')"><span class="rbi">📅</span><div><div class="fml">Monthly Statement</div><div class="fms">Income & expenses, both accounts</div></div></button>
+      <button class="rb" onclick="showReport('annual')"><span class="rbi">📆</span><div><div class="fml">Annual Summary</div><div class="fms">Full year, Club & Charity separate</div></div></button>
+      <button class="rb" onclick="showReport('membership')"><span class="rbi">👥</span><div><div class="fml">Membership Report</div><div class="fms">Paid / unpaid / prospects / fees owed</div></div></button>
+      <button class="rb" onclick="showReport('merchandise')"><span class="rbi">🛍️</span><div><div class="fml">Merchandise Sales</div><div class="fms">By product, member vs visitor, margins</div></div></button>
+      <button class="rb" onclick="showReport('donations')"><span class="rbi">🤝</span><div><div class="fml">Donation Report</div><div class="fms">Charity in & out by source/recipient</div></div></button>
+      <button class="rb" onclick="showReport('suppliers')"><span class="rbi">🏪</span><div><div class="fml">Purchase Ledger</div><div class="fms">By supplier and category</div></div></button>
+      <button class="rb" onclick="showReport('cogs')"><span class="rbi">📐</span><div><div class="fml">Cost of Goods</div><div class="fms">Production cost vs sale price, margins</div></div></button>
+      <button class="rb" id="audit-btn" style="display:none" onclick="showReport('audit')"><span class="rbi">🔍</span><div><div class="fml">Audit Trail</div><div class="fms">All entries with user & real timestamp</div></div></button>
+      <div class="divider"></div>
+      <div class="stitle" style="margin-bottom:12px">Settings</div>
+      <div id="admin-settings" style="display:none">
+        <div style="background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:10px">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Opening Balances</div>
+          <div class="fg"><label>Club Account (฿)</label><input type="number" id="set-cb" placeholder="0"></div>
+          <div class="fg"><label>Charity Account (฿)</label><input type="number" id="set-hb" placeholder="0"></div>
+          <button class="btn btn-gold" onclick="saveBalances()">Save Balances</button>
+        </div>
+        <div style="background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:10px">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Annual Membership Fee</div>
+          <div class="fg"><label>Fee Amount (฿)</label><input type="number" id="set-fee" value="2000"></div>
+          <button class="btn btn-gold" onclick="saveFee()">Save Fee</button>
+        </div>
+        <div style="background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:10px">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Users & PINs</div>
+          <div id="user-list-s"></div>
+          <button class="btn btn-out" style="margin-top:8px" onclick="openAddUserModal()">+ Add User</button>
+        </div>
+        <div style="background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:10px">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Suppliers</div>
+          <div id="sup-list-s"></div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <input type="text" id="new-sup" placeholder="New supplier name" style="flex:1">
+            <button onclick="addSupplier()" style="background:var(--gold);border:none;color:#000;padding:0 14px;border-radius:10px;cursor:pointer;font-weight:600;font-size:13px">Add</button>
+          </div>
+        </div>
+      </div>
+      <div class="sn">
+        <h4>📱 How to Install</h4>
+        <p><strong>Android:</strong> Chrome → ⋮ → "Add to Home Screen"</p>
+        <p style="margin-top:6px"><strong>iOS:</strong> Safari → Share → "Add to Home Screen"</p>
+      </div>
+      <div class="sn" id="sync-settings" style="display:none">
+        <h4>☁️ Cloud Sync (Supabase)</h4>
+        <p style="margin-bottom:10px">Free at supabase.com — all devices share data automatically</p>
+        <div class="fg"><label>Project URL</label><input type="url" id="set-su" placeholder="https://xxxx.supabase.co"></div>
+        <div class="fg"><label>Anon Key</label><input type="text" id="set-sk" placeholder="eyJ..."></div>
+        <button class="btn btn-gold" onclick="saveSync()">Save Sync Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <button class="fab" id="fab" onclick="openFab()">+</button>
+  <div class="bn">
+    <button class="nb on" id="nb-dash" onclick="goTo('dash')"><span class="ni">🏠</span>Home</button>
+    <button class="nb" id="nb-ledger" onclick="goTo('ledger')"><span class="ni">💳</span>Ledger</button>
+    <button class="nb" id="nb-members" onclick="goTo('members')"><span class="ni">👥</span>Members</button>
+    <button class="nb" id="nb-events" onclick="goTo('events')"><span class="ni">🎉</span>Events</button>
+    <button class="nb" id="nb-more" onclick="goTo('more')"><span class="ni">⚙️</span>More</button>
+  </div>
+</div>
+
+<!-- FAB MENU -->
+<div class="mo" id="mo-fab"><div class="modal">
+  <div class="mh"><div class="mt">New Entry</div><button class="mc2" onclick="closeM('mo-fab')">✕</button></div>
+  <button class="fmi" onclick="openSaleModal()"><span class="fmic">👕</span><div><div class="fml">Merchandise Sale</div><div class="fms">Shirt, hat, keyring…</div></div></button>
+  <button class="fmi" onclick="openTxModal('in')"><span class="fmic">⬆️</span><div><div class="fml">Record Income</div><div class="fms">Donations, fees, event income…</div></div></button>
+  <button class="fmi" onclick="openTxModal('out')"><span class="fmic">⬇️</span><div><div class="fml">Record Expense</div><div class="fms">Purchases, event costs, charity out…</div></div></button>
+  <button class="fmi" onclick="openMemberModal()"><span class="fmic">👤</span><div><div class="fml">Add Member / Prospect</div><div class="fms">New member or prospect</div></div></button>
+  <button class="fmi" onclick="closeM('mo-fab');openEventModal()"><span class="fmic">🎉</span><div><div class="fml">Add Event</div><div class="fms">Ride, party, fundraiser…</div></div></button>
+</div></div>
+
+<!-- TX MODAL -->
+<div class="mo" id="mo-tx"><div class="modal">
+  <div class="mh"><div class="mt">New Transaction</div><button class="mc2" onclick="closeM('mo-tx')">✕</button></div>
+  <div class="fg"><label>Account</label>
+    <div class="tg"><button class="tgb club" id="tacc-c" onclick="selAcc('club')">🏍️ Club</button><button class="tgb" id="tacc-h" onclick="selAcc('charity')">❤️ Charity</button></div></div>
+  <div class="fg"><label>Direction</label>
+    <div class="tg"><button class="tgb tin" id="tdir-i" onclick="selDir('in')">⬆️ Income</button><button class="tgb" id="tdir-o" onclick="selDir('out')">⬇️ Expense</button></div></div>
+  <div class="fg"><label>Category</label><select id="tx-cat"></select></div>
+  <div class="fg irow">
+    <div><label>Amount (฿)</label><input type="number" id="tx-amt" placeholder="0"></div>
+    <div><label>Date</label><input type="date" id="tx-date"></div>
+  </div>
+  <div class="fg"><label>Description</label><input type="text" id="tx-desc" placeholder="Details…"></div>
+  <div class="fg"><label>Supplier / Source</label><input type="text" id="tx-sup" placeholder="Type or select…" list="sup-dl"><datalist id="sup-dl"></datalist></div>
+  <div class="fg irow">
+    <div><label>Ref / Invoice #</label><input type="text" id="tx-ref" placeholder="Invoice no."></div>
+    <div><label>Linked Event</label><select id="tx-ev"><option value="">— None —</option></select></div>
+  </div>
+  <div class="fg"><label>Notes</label><textarea id="tx-notes" placeholder="Additional notes…"></textarea></div>
+  <button class="btn btn-gold" onclick="saveTx()">Save Transaction</button>
+</div></div>
+
+<!-- SALE MODAL -->
+<div class="mo" id="mo-sale"><div class="modal">
+  <div class="mh"><div class="mt">Merchandise Sale</div><button class="mc2" onclick="closeM('mo-sale')">✕</button></div>
+  <div class="fg"><label>Product</label><select id="sale-prod" onchange="updateSaleVars()"></select></div>
+  <div class="fg"><label>Variant / Style</label><select id="sale-var" onchange="updateSalePrice()"></select></div>
+  <div class="fg" id="sale-sz-g" style="display:none"><label>Size</label><select id="sale-size"></select></div>
+  <div class="fg"><label>Customer Type</label>
+    <div class="tg"><button class="tgb tmem" id="cust-m" onclick="selCust('member')">🏍️ Member</button><button class="tgb" id="cust-v" onclick="selCust('visitor')">👤 Visitor</button></div></div>
+  <div class="fg irow">
+    <div><label>Unit Price (฿)</label><input type="number" id="sale-price" oninput="updateSaleTotal()"></div>
+    <div><label>Qty</label><input type="number" id="sale-qty" value="1" min="1" oninput="updateSaleTotal()"></div>
+  </div>
+  <div class="fg"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Total</div><div style="font-size:22px;font-weight:700;color:var(--gold)" id="sale-total">฿0</div></div>
+  <div class="fg irow">
+    <div><label>Date</label><input type="date" id="sale-date"></div>
+    <div><label>Notes</label><input type="text" id="sale-notes" placeholder="e.g. size, colour"></div>
+  </div>
+  <button class="btn btn-gold" onclick="saveSale()">Record Sale</button>
+</div></div>
+
+<!-- MEMBER MODAL -->
+<div class="mo" id="mo-member"><div class="modal">
+  <div class="mh"><div class="mt" id="mo-mem-t">Add Member</div><button class="mc2" onclick="closeM('mo-member')">✕</button></div>
+  <input type="hidden" id="mem-id">
+  <div class="fg"><label>Full Name</label><input type="text" id="mem-name" placeholder="Full name"></div>
+  <div class="fg irow">
+    <div><label>Role</label><select id="mem-role">
+      <option value="prospect">Prospect</option><option value="member">Member</option>
+      <option value="treasurer">Treasurer</option><option value="vice_president">Vice President</option>
+      <option value="president">President</option></select></div>
+    <div><label>Status</label><select id="mem-status">
+      <option value="prospect">Prospect</option><option value="unpaid">Unpaid</option>
+      <option value="paid">Paid</option></select></div>
+  </div>
+  <div class="fg irow">
+    <div><label>Join Date</label><input type="date" id="mem-join"></div>
+    <div><label>Phone</label><input type="tel" id="mem-phone"></div>
+  </div>
+  <div class="fg"><label>Notes</label><input type="text" id="mem-notes" placeholder="Optional notes"></div>
+  <button class="btn btn-gold" onclick="saveMember()">Save</button>
+  <button class="btn btn-red" id="mem-del" style="display:none;margin-top:6px" onclick="deleteMember()">Delete Member</button>
+</div></div>
+
+<!-- EVENT MODAL -->
+<div class="mo" id="mo-event"><div class="modal">
+  <div class="mh"><div class="mt">Add Event</div><button class="mc2" onclick="closeM('mo-event')">✕</button></div>
+  <div class="fg"><label>Event Name</label><input type="text" id="ev-name" placeholder="e.g. Road Eagles Annual Party 2026"></div>
+  <div class="fg irow">
+    <div><label>Date</label><input type="date" id="ev-date"></div>
+    <div><label>Type</label><select id="ev-type"><option value="party">Annual Party</option><option value="ride">Ride</option><option value="fundraiser">Fundraiser</option><option value="other">Other</option></select></div>
+  </div>
+  <div class="fg"><label>Venue</label><input type="text" id="ev-venue" placeholder="Venue name / location"></div>
+  <div class="fg"><label>Notes</label><textarea id="ev-notes" placeholder="Description, highlights…"></textarea></div>
+  <div class="notice" style="margin-top:4px">💡 Record income/expenses for this event in the Ledger using Event Income / Event Expense categories.</div>
+  <button class="btn btn-gold" onclick="saveEvent()">Save Event</button>
+</div></div>
+
+<!-- ADD USER MODAL -->
+<div class="mo" id="mo-user"><div class="modal">
+  <div class="mh"><div class="mt">Add / Edit User</div><button class="mc2" onclick="closeM('mo-user')">✕</button></div>
+  <div class="fg"><label>Name</label><input type="text" id="usr-name" placeholder="User's name"></div>
+  <div class="fg irow">
+    <div><label>PIN (4–6 digits)</label><input type="number" id="usr-pin" placeholder="PIN"></div>
+    <div><label>Role</label><select id="usr-role"><option value="officer">Officer</option><option value="admin">Admin</option></select></div>
+  </div>
+  <input type="hidden" id="usr-old">
+  <button class="btn btn-gold" onclick="saveUser()">Save User</button>
+</div></div>
+
+<!-- ADD PRODUCT MODAL -->
+<div class="mo" id="mo-product"><div class="modal">
+  <div class="mh"><div class="mt">Add Product</div><button class="mc2" onclick="closeM('mo-product')">✕</button></div>
+  <div class="fg"><label>Product Name</label><input type="text" id="pr-name" placeholder="e.g. Club Patch"></div>
+  <div class="fg"><label>Category</label><select id="pr-cat"><option value="shirt">Shirt</option><option value="hat">Hat</option><option value="keyring">Keyring</option><option value="other">Other</option></select></div>
+  <div class="fg"><label>Has Sizes (S–6XL)?</label>
+    <div class="tg"><button class="tgb" id="pr-sy" onclick="selSz(true)">Yes</button><button class="tgb tmem" id="pr-sn" onclick="selSz(false)">No</button></div></div>
+  <div class="fg"><label>First Variant Name</label><input type="text" id="pr-var" placeholder="e.g. Standard / Black"></div>
+  <div class="fg irow">
+    <div><label>Member Price (฿)</label><input type="number" id="pr-mp"></div>
+    <div><label>Visitor Price (฿)</label><input type="number" id="pr-vp"></div>
+  </div>
+  <div class="fg"><label>Production Cost (฿)</label><input type="number" id="pr-cp"></div>
+  <button class="btn btn-gold" onclick="saveProduct()">Add Product</button>
+</div></div>
+
+<!-- REPORT MODAL -->
+<div class="mo" id="mo-report"><div class="modal">
+  <div class="mh"><div class="mt" id="rpt-t">Report</div><button class="mc2" onclick="closeM('mo-report')">✕</button></div>
+  <div id="rpt-b"></div>
+  <button class="btn btn-out" onclick="closeM('mo-report')" style="margin-top:10px">Close</button>
+</div></div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────
+const SIZES=['S','M','L','XL','2XL','3XL','4XL','5XL','6XL'];
+function def(){return{
+  openingClub:0,openingCharity:0,memberFee:2000,
+  members:[
+    {id:'m1',name:'Dennis',role:'president',status:'paid',joinDate:'2024-01-01',phone:'',notes:'',created:new Date().toISOString()},
+    {id:'m2',name:'Brian',role:'vice_president',status:'paid',joinDate:'2024-01-01',phone:'',notes:'',created:new Date().toISOString()},
+    {id:'m3',name:'Simon',role:'treasurer',status:'paid',joinDate:'2024-01-01',phone:'',notes:'',created:new Date().toISOString()},
+  ],
+  transactions:[],events:[],
+  suppliers:['Road Eagles Shirt Supplier','Lazada','Badge Embroidery Service','Venue Co.','Print & Design'],
+  products:[
+    {id:'p1',name:'Club Shirt',category:'shirt',hasSizes:true,variants:[
+      {name:'Short Sleeve',memberPrice:350,visitorPrice:450,production:200},
+      {name:'Long Sleeve',memberPrice:400,visitorPrice:500,production:250},
+      {name:'Polo Neck',memberPrice:420,visitorPrice:520,production:270}]},
+    {id:'p2',name:'Support Shirt',category:'shirt',hasSizes:true,variants:[
+      {name:'Short Sleeve',memberPrice:300,visitorPrice:400,production:180}]},
+    {id:'p3',name:'Club Hat',category:'hat',hasSizes:false,variants:[
+      {name:'Trucker – Black',memberPrice:250,visitorPrice:350,production:150},
+      {name:'Trucker – Red',memberPrice:250,visitorPrice:350,production:150},
+      {name:'Stretch – Black',memberPrice:280,visitorPrice:380,production:170},
+      {name:'Stretch – Red',memberPrice:280,visitorPrice:380,production:170}]},
+    {id:'p4',name:'Keyring',category:'keyring',hasSizes:false,variants:[
+      {name:'Standard',memberPrice:100,visitorPrice:150,production:60}]},
+  ],
+  users:{'846464':{name:'Mike',role:'admin'},'1111':{name:'Dennis',role:'officer'},'2222':{name:'Brian',role:'officer'},'3333':{name:'Simon',role:'officer'}},
+  supabaseUrl:'',supabaseKey:''
+};}
+let D=JSON.parse(localStorage.getItem('remct2'))||def();
+let CU=null,PIN='';
+let LF='all',MF='all',RF='all';
+function save(){localStorage.setItem('remct2',JSON.stringify(D));}
+
+// ── LOGIN ──────────────────────────────────────────────────────
+function pp(d){if(PIN.length>=6)return;PIN+=d;dots();if(PIN.length===6)setTimeout(tryLogin,80);}
+function pd(){PIN=PIN.slice(0,-1);dots();}
+function dots(){for(let i=0;i<6;i++)document.getElementById('d'+i).classList.toggle('on',i<PIN.length);}
+function tryLogin(){
+  if(D.users[PIN]){
+    CU={...D.users[PIN],pin:PIN};
+    document.getElementById('ls').style.display='none';
+    document.getElementById('app').style.display='flex';
+    document.getElementById('tuser').textContent=CU.name+(CU.role==='admin'?' 🔧':'');
+    document.getElementById('tdate').textContent=new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+    if(CU.role==='admin'){
+      document.getElementById('admin-settings').style.display='';
+      document.getElementById('sync-settings').style.display='';
+      document.getElementById('admin-merch').style.display='';
+      document.getElementById('audit-btn').style.display='';
+    }
+    loadSettings();renderAll();goTo('dash');
+  }else{
+    document.getElementById('lerr').textContent='Incorrect PIN — try again';
+    setTimeout(()=>{PIN='';dots();document.getElementById('lerr').textContent='';},900);
+  }
+}
+function logout(){CU=null;PIN='';dots();document.getElementById('app').style.display='none';document.getElementById('ls').style.display='flex';}
+
+// ── NAV ──────────────────────────────────────────────────────
+function goTo(n){
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  document.getElementById('scr-'+n).classList.add('on');
+  document.getElementById('nb-'+n).classList.add('on');
+  document.getElementById('fab').style.display=n==='more'?'none':'flex';
+  if(n==='dash')renderDash();
+  if(n==='ledger')renderLedger();
+  if(n==='members')renderMembers();
+  if(n==='merch')renderMerch();
+  if(n==='events')renderEvents();
+  if(n==='more')renderSettings();
+}
+function setLTab(b,v){document.querySelectorAll('#ledger-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');LF=v;renderLedger();}
+function setMTab(b,v){document.querySelectorAll('#mem-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');MF=v;renderMembers();}
+function setRTab(b,v){document.querySelectorAll('#merch-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');RF=v;renderMerch();}
+function renderAll(){renderDash();renderLedger();renderMembers();renderMerch();renderEvents();}
+
+// ── UTILS ──────────────────────────────────────────────────────
+function thb(n){return'฿'+(Math.round(n)||0).toLocaleString();}
+function nd(){return new Date().toISOString().slice(0,10);}
+function ni(){return new Date().toISOString();}
+function fd(s){if(!s)return'';try{return new Date(s).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}catch(e){return s;}}
+function fdt(s){if(!s)return'';try{return new Date(s).toLocaleString('en-GB',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){return s;}}
+function uid(){return'x'+Date.now()+Math.random().toString(36).slice(2,6);}
+function calcBal(){
+  let ci=D.openingClub,co=0,hi=D.openingCharity,ho=0;
+  D.transactions.forEach(t=>{const a=parseFloat(t.amount)||0;if(t.account==='club'){t.direction==='in'?ci+=a:co+=a;}else{t.direction==='in'?hi+=a:ho+=a;}});
+  return{club:ci-co,charity:hi-ho};
+}
+function mthTx(){const n=new Date(),m=n.getMonth(),y=n.getFullYear();return D.transactions.filter(t=>{const d=new Date(t.date||t.created);return d.getMonth()===m&&d.getFullYear()===y;});}
+function calcFee(joinDate){const f=D.memberFee||2000;if(!joinDate)return f;const mo=new Date(joinDate).getMonth()+1;if(mo<=3)return f;if(mo<=6)return Math.round(f*.75);if(mo<=9)return Math.round(f*.5);return Math.round(f*.25);}
+const CM={merchandise:'👕 Merchandise',membership_fee:'🪪 Membership Fee',donation_in:'🤝 Donation In',donation_out:'💝 Donation Out',collection_box:'📦 Collection Box',event_income:'🎉 Event Income',event_expense:'🎪 Event Expense',venue:'🏟️ Venue',music:'🎵 Music/Entertainment',marketing:'📄 Marketing/Print',purchase:'🛒 Purchase',petty_cash:'💵 Petty Cash',charity_cash:'❤️ Charity Cash',charity_goods:'📦 Charity Goods',club_donation_out:'🤝 Club Donation Out',ride_income:'🏍️ Ride Income',other:'⬡ Other'};
+const CATS_I=['merchandise','membership_fee','donation_in','collection_box','event_income','ride_income','other'];
+const CATS_O=['purchase','petty_cash','donation_out','event_expense','venue','music','marketing','charity_cash','charity_goods','club_donation_out','other'];
+function txi(t){const m={merchandise:'👕',membership_fee:'🪪',donation_in:'🤝',donation_out:'💝',collection_box:'📦',event_income:'🎉',event_expense:'🎪',venue:'🏟️',music:'🎵',marketing:'📄',purchase:'🛒',petty_cash:'💵',charity_cash:'❤️',charity_goods:'📦',club_donation_out:'🤝',ride_income:'🏍️',other:'💳'};return m[t.category]||'💳';}
+
+// ── TX CARD ──────────────────────────────────────────────────────
+function txCard(t){
+  const sign=t.direction==='in'?'+':'-',cls=t.direction==='in'?'p':'n';
+  const ab=`<span class="ab ${t.account}">${t.account==='club'?'Club':'Charity'}</span>`;
+  const at=CU&&CU.role==='admin'?`<div class="atag">By ${t.enteredBy||'?'} · Entered: ${fdt(t.created)}</div>`:'';
+  const dl=CU&&CU.role==='admin'?`<button class="dlink" onclick="delTx('${t.id}')">✕ Delete entry</button>`:'';
+  const ev=t.eventId&&D.events?D.events.find(e=>e.id===t.eventId):null;
+  return`<div class="txi">
+    <div class="txic">${txi(t)}</div>
+    <div class="txin">
+      <div class="txd">${t.description||(CM[t.category]||t.category)}</div>
+      <div class="txm">${ab}<span class="tag ${cls}">${t.direction.toUpperCase()}</span>${fd(t.date||t.created)}</div>
+      ${t.supplier?`<div style="font-size:10px;color:var(--dim)">🏪 ${t.supplier}</div>`:''}
+      ${t.ref?`<div style="font-size:10px;color:var(--dim)">📄 ${t.ref}</div>`:''}
+      ${ev?`<div style="font-size:10px;color:var(--dim)">🎉 ${ev.name}</div>`:''}
+      ${at}
+    </div>
+    <div><div class="txa ${cls}">${sign}${thb(t.amount)}</div></div>
+  </div>${dl}`;
+}
+
+// ── DASHBOARD ──────────────────────────────────────────────────────
+function renderDash(){
+  const b=calcBal();
+  document.getElementById('db-cb').textContent=thb(b.club);
+  document.getElementById('db-hb').textContent=thb(b.charity);
+  document.getElementById('db-mem').textContent=D.members.filter(m=>m.status!=='prospect').length;
+  document.getElementById('db-pros').textContent=D.members.filter(m=>m.status==='prospect').length;
+  const mt=mthTx();
+  document.getElementById('db-in').textContent=thb(mt.filter(t=>t.direction==='in').reduce((a,t)=>a+parseFloat(t.amount||0),0));
+  document.getElementById('db-out').textContent=thb(mt.filter(t=>t.direction==='out').reduce((a,t)=>a+parseFloat(t.amount||0),0));
+  document.getElementById('db-fees').textContent=thb(D.transactions.filter(t=>t.category==='membership_fee').reduce((a,t)=>a+parseFloat(t.amount||0),0));
+  document.getElementById('db-merch').textContent=thb(D.transactions.filter(t=>t.category==='merchandise').reduce((a,t)=>a+parseFloat(t.amount||0),0));
+  const el=document.getElementById('db-tx');
+  const rec=[...D.transactions].reverse().slice(0,8);
+  el.innerHTML=rec.length?rec.map(txCard).join(''):'<div class="empty"><div class="ei">📋</div>No transactions yet</div>';
+}
+
+// ── LEDGER ──────────────────────────────────────────────────────
+function renderLedger(){
+  const s=(document.getElementById('txs').value||'').toLowerCase();
+  let txs=[...D.transactions].reverse();
+  if(LF==='club')txs=txs.filter(t=>t.account==='club');
+  else if(LF==='charity')txs=txs.filter(t=>t.account==='charity');
+  else if(LF==='in')txs=txs.filter(t=>t.direction==='in');
+  else if(LF==='out')txs=txs.filter(t=>t.direction==='out');
+  else if(LF==='merch')txs=txs.filter(t=>t.category==='merchandise');
+  else if(LF==='donation')txs=txs.filter(t=>['donation_in','donation_out','charity_cash','charity_goods','collection_box','club_donation_out'].includes(t.category));
+  else if(LF==='event')txs=txs.filter(t=>['event_income','event_expense','venue','music','marketing'].includes(t.category));
+  else if(LF==='fee')txs=txs.filter(t=>t.category==='membership_fee');
+  if(s)txs=txs.filter(t=>(t.description||'').toLowerCase().includes(s)||(t.supplier||'').toLowerCase().includes(s)||(CM[t.category]||'').toLowerCase().includes(s));
+  const el=document.getElementById('ledger-list');
+  el.innerHTML=txs.length?txs.map(txCard).join(''):'<div class="empty"><div class="ei">📋</div>No entries match</div>';
+}
+function delTx(id){
+  if(!CU||CU.role!=='admin')return;
+  if(!confirm('Delete this entry permanently?'))return;
+  D.transactions=D.transactions.filter(t=>t.id!==id);
+  save();renderAll();
+}
+
+// ── MEMBERS ──────────────────────────────────────────────────────
+function renderMembers(){
+  const s=(document.getElementById('mems').value||'').toLowerCase();
+  let ms=D.members;
+  if(MF==='member')ms=ms.filter(m=>m.status!=='prospect');
+  else if(MF==='prospect')ms=ms.filter(m=>m.status==='prospect');
+  else if(MF==='unpaid')ms=ms.filter(m=>m.status==='unpaid');
+  if(s)ms=ms.filter(m=>m.name.toLowerCase().includes(s));
+  document.getElementById('fee-d').textContent=(D.memberFee||2000).toLocaleString();
+  const el=document.getElementById('mem-list');
+  const RL={president:'President',vice_president:'Vice President',treasurer:'Treasurer',member:'Member',prospect:'Prospect'};
+  el.innerHTML=ms.map(m=>{
+    const init=m.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const sc={paid:'paid',unpaid:'unpaid',prospect:'prospect'};
+    const sl={paid:'Fee Paid ✓',unpaid:'Fee Unpaid ⚠️',prospect:'Prospect'};
+    const fee=calcFee(m.joinDate);
+    return`<div class="mc">
+      <div class="mav">${init}</div>
+      <div class="min">
+        <div class="mn">${m.name}</div>
+        <div class="mr">${RL[m.role]||m.role}</div>
+        ${m.status!=='prospect'?`<div style="font-size:11px;color:var(--muted);margin-top:2px">2026 fee: ${thb(fee)}</div>`:''}
+        ${m.phone?`<div style="font-size:10px;color:var(--dim)">${m.phone}</div>`:''}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+        <span class="ms ${sc[m.status]||'prospect'}">${sl[m.status]||m.status}</span>
+        ${m.status==='unpaid'?`<button style="font-size:10px;background:none;border:1px solid var(--grn);color:var(--grnl);border-radius:20px;padding:3px 8px;cursor:pointer" onclick="markPaid('${m.id}')">Mark Paid</button>`:''}
+        ${CU&&CU.role==='admin'?`<button style="font-size:10px;background:none;border:1px solid var(--bd);color:var(--muted);border-radius:20px;padding:3px 8px;cursor:pointer" onclick="editMem('${m.id}')">Edit</button>`:''}
+      </div>
+    </div>`;
+  }).join('')||'<div class="empty"><div class="ei">👥</div>No members match</div>';
+}
+function markPaid(id){
+  const m=D.members.find(x=>x.id===id);if(!m)return;
+  m.status='paid';
+  D.transactions.push({id:uid(),account:'club',direction:'in',category:'membership_fee',amount:calcFee(m.joinDate),description:`Membership fee – ${m.name} (2026)`,supplier:'',ref:'',date:nd(),created:ni(),notes:'',enteredBy:CU.name});
+  save();renderAll();
+}
+function editMem(id){
+  const m=D.members.find(x=>x.id===id);if(!m)return;
+  document.getElementById('mo-mem-t').textContent='Edit Member';
+  document.getElementById('mem-id').value=id;
+  document.getElementById('mem-name').value=m.name;
+  document.getElementById('mem-role').value=m.role;
+  document.getElementById('mem-status').value=m.status;
+  document.getElementById('mem-join').value=m.joinDate||'';
+  document.getElementById('mem-phone').value=m.phone||'';
+  document.getElementById('mem-notes').value=m.notes||'';
+  document.getElementById('mem-del').style.display='';
+  openM('mo-member');
+}
+function deleteMember(){
+  const id=document.getElementById('mem-id').value;
+  if(!id||!CU||CU.role!=='admin')return;
+  if(!confirm('Delete member permanently?'))return;
+  D.members=D.members.filter(m=>m.id!==id);
+  save();closeM('mo-member');renderMembers();
+}
+
+// ── MERCH ──────────────────────────────────────────────────────
+function renderMerch(){
+  let ps=D.products;
+  if(RF!=='all')ps=ps.filter(p=>p.category===RF);
+  const el=document.getElementById('merch-list');
+  el.innerHTML=ps.map(p=>`
+    <div class="pc">
+      <div class="ph"><div class="pn">${p.name}</div><span class="pill">${p.category}</span></div>
+      ${p.hasSizes?`<div style="font-size:10px;color:var(--dim);margin-bottom:6px">Sizes: ${SIZES.join(', ')}</div>`:''}
+      ${p.variants.map(v=>`<div class="vrow">
+        <div class="vn">${v.name}</div>
+        <div class="pps">
+          <div class="pp">Member <span class="pv">${thb(v.memberPrice)}</span></div>
+          <div class="pp">Visitor <span class="pv">${thb(v.visitorPrice)}</span></div>
+          <div class="pp">Cost <span class="pv">${thb(v.production)}</span></div>
+          <div class="pp">Margin <span class="pv" style="color:var(--grnl)">${thb(v.memberPrice-v.production)}</span></div>
+        </div></div>`).join('')}
+    </div>`).join('')||'<div class="empty"><div class="ei">👕</div>No products</div>';
+}
+
+// ── EVENTS ──────────────────────────────────────────────────────
+function renderEvents(){
+  const el=document.getElementById('event-list');
+  if(!D.events||!D.events.length){el.innerHTML='<div class="empty"><div class="ei">🎉</div>No events yet</div>';return;}
+  el.innerHTML=[...D.events].reverse().map(ev=>{
+    const evTx=D.transactions.filter(t=>t.eventId===ev.id);
+    const eIn=evTx.filter(t=>t.direction==='in').reduce((a,t)=>a+parseFloat(t.amount||0),0);
+    const eOut=evTx.filter(t=>t.direction==='out').reduce((a,t)=>a+parseFloat(t.amount||0),0);
+    return`<div class="ec">
+      <div class="en">${ev.name}</div>
+      <div class="em"><span>📅 ${fd(ev.date)}</span><span>📍 ${ev.venue||'TBC'}</span><span>🎭 ${ev.type}</span></div>
+      ${evTx.length?`<div style="margin-top:8px;font-size:12px">Income: <span style="color:var(--grnl)">${thb(eIn)}</span> · Costs: <span style="color:var(--rl)">${thb(eOut)}</span> · Net: <span style="color:${eIn-eOut>=0?'var(--grnl)':'var(--rl)'}">${thb(eIn-eOut)}</span></div>`:''}
+      ${ev.notes?`<div style="font-size:11px;color:var(--dim);margin-top:6px">${ev.notes}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ── MODALS ──────────────────────────────────────────────────────
+function openM(id){document.getElementById(id).classList.add('on');}
+function closeM(id){document.getElementById(id).classList.remove('on');}
+function openFab(){openM('mo-fab');}
+
+// TX MODAL
+let _ta='club',_td='in';
+function openTxModal(dir){
+  closeM('mo-fab');_td=dir;_ta='club';
+  selDir(dir);selAcc('club');
+  document.getElementById('tx-date').value=nd();
+  document.getElementById('tx-amt').value='';
+  document.getElementById('tx-desc').value='';
+  document.getElementById('tx-sup').value='';
+  document.getElementById('tx-ref').value='';
+  document.getElementById('tx-notes').value='';
+  // populate event dropdown
+  const evSel=document.getElementById('tx-ev');
+  evSel.innerHTML='<option value="">— None —</option>'+(D.events||[]).map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
+  // populate supplier datalist
+  document.getElementById('sup-dl').innerHTML=D.suppliers.map(s=>`<option value="${s}">`).join('');
+  openM('mo-tx');
+}
+function selAcc(a){_ta=a;document.getElementById('tacc-c').className='tgb'+(a==='club'?' club':'');document.getElementById('tacc-h').className='tgb'+(a==='charity'?' charity':'');updateCats();}
+function selDir(d){_td=d;document.getElementById('tdir-i').className='tgb'+(d==='in'?' tin':'');document.getElementById('tdir-o').className='tgb'+(d==='out'?' tout':'');updateCats();}
+function updateCats(){const cats=_td==='in'?CATS_I:CATS_O;document.getElementById('tx-cat').innerHTML=cats.map(c=>`<option value="${c}">${CM[c]||c}</option>`).join('');}
+function saveTx(){
+  const amt=parseFloat(document.getElementById('tx-amt').value)||0;
+  if(!amt){alert('Please enter an amount');return;}
+  const sup=document.getElementById('tx-sup').value.trim();
+  if(sup&&!D.suppliers.includes(sup))D.suppliers.push(sup);
+  D.transactions.push({id:uid(),account:_ta,direction:_td,category:document.getElementById('tx-cat').value,amount:amt,description:document.getElementById('tx-desc').value.trim(),supplier:sup,ref:document.getElementById('tx-ref').value.trim(),eventId:document.getElementById('tx-ev').value||'',date:document.getElementById('tx-date').value,created:ni(),notes:document.getElementById('tx-notes').value.trim(),enteredBy:CU.name});
+  save();closeM('mo-tx');renderAll();
+}
+
+// SALE MODAL
+let _cu='member';
+function openSaleModal(){
+  closeM('mo-fab');_cu='member';selCust('member');
+  document.getElementById('sale-date').value=nd();
+  document.getElementById('sale-qty').value=1;
+  document.getElementById('sale-notes').value='';
+  const ps=document.getElementById('sale-prod');
+  ps.innerHTML=D.products.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+  updateSaleVars();openM('mo-sale');
+}
+function updateSaleVars(){
+  const p=D.products.find(x=>x.id===document.getElementById('sale-prod').value);if(!p)return;
+  document.getElementById('sale-var').innerHTML=p.variants.map((v,i)=>`<option value="${i}">${v.name}</option>`).join('');
+  if(p.hasSizes){document.getElementById('sale-sz-g').style.display='';document.getElementById('sale-size').innerHTML=SIZES.map(s=>`<option>${s}</option>`).join('');}
+  else document.getElementById('sale-sz-g').style.display='none';
+  updateSalePrice();
+}
+function updateSalePrice(){
+  const p=D.products.find(x=>x.id===document.getElementById('sale-prod').value);if(!p)return;
+  const v=p.variants[parseInt(document.getElementById('sale-var').value)||0];
+  document.getElementById('sale-price').value=_cu==='member'?v.memberPrice:v.visitorPrice;
+  updateSaleTotal();
+}
+function updateSaleTotal(){document.getElementById('sale-total').textContent=thb((parseFloat(document.getElementById('sale-price').value)||0)*(parseInt(document.getElementById('sale-qty').value)||1));}
+function selCust(c){_cu=c;document.getElementById('cust-m').className='tgb'+(c==='member'?' tmem':'');document.getElementById('cust-v').className='tgb'+(c==='visitor'?' tvis':'');updateSalePrice();}
+function saveSale(){
+  const p=D.products.find(x=>x.id===document.getElementById('sale-prod').value);
+  const vi=parseInt(document.getElementById('sale-var').value)||0;
+  const v=p.variants[vi];
+  const pr=parseFloat(document.getElementById('sale-price').value)||0;
+  const qty=parseInt(document.getElementById('sale-qty').value)||1;
+  const sz=p.hasSizes?' ('+document.getElementById('sale-size').value+')':'';
+  D.transactions.push({id:uid(),account:'club',direction:'in',category:'merchandise',amount:pr*qty,description:`${p.name} – ${v.name}${sz} ×${qty} (${_cu})`,supplier:'',ref:'',date:document.getElementById('sale-date').value,created:ni(),notes:document.getElementById('sale-notes').value.trim(),enteredBy:CU.name,productId:p.id,variantIdx:vi,qty,unitPrice:pr,customerType:_cu});
+  save();closeM('mo-sale');renderAll();
+}
+
+// MEMBER MODAL
+function openMemberModal(){
+  closeM('mo-fab');
+  document.getElementById('mo-mem-t').textContent='Add Member / Prospect';
+  document.getElementById('mem-id').value='';
+  document.getElementById('mem-name').value='';
+  document.getElementById('mem-role').value='prospect';
+  document.getElementById('mem-status').value='prospect';
+  document.getElementById('mem-join').value=nd();
+  document.getElementById('mem-phone').value='';
+  document.getElementById('mem-notes').value='';
+  document.getElementById('mem-del').style.display='none';
+  openM('mo-member');
+}
+function saveMember(){
+  const name=document.getElementById('mem-name').value.trim();
+  if(!name){alert('Name required');return;}
+  const id=document.getElementById('mem-id').value;
+  if(id){const m=D.members.find(x=>x.id===id);if(!m)return;m.name=name;m.role=document.getElementById('mem-role').value;m.status=document.getElementById('mem-status').value;m.joinDate=document.getElementById('mem-join').value;m.phone=document.getElementById('mem-phone').value;m.notes=document.getElementById('mem-notes').value;}
+  else D.members.push({id:uid(),name,role:document.getElementById('mem-role').value,status:document.getElementById('mem-status').value,joinDate:document.getElementById('mem-join').value,phone:document.getElementById('mem-phone').value,notes:document.getElementById('mem-notes').value,addedBy:CU.name,created:ni()});
+  save();closeM('mo-member');renderMembers();
+}
+
+// EVENT MODAL
+function openEventModal(){
+  document.getElementById('ev-name').value='';document.getElementById('ev-date').value=nd();
+  document.getElementById('ev-type').value='party';document.getElementById('ev-venue').value='';document.getElementById('ev-notes').value='';
+  openM('mo-event');
+}
+function saveEvent(){
+  const name=document.getElementById('ev-name').value.trim();if(!name){alert('Event name required');return;}
+  if(!D.events)D.events=[];
+  D.events.push({id:uid(),name,date:document.getElementById('ev-date').value,type:document.getElementById('ev-type').value,venue:document.getElementById('ev-venue').value.trim(),notes:document.getElementById('ev-notes').value.trim(),created:ni(),addedBy:CU.name});
+  save();closeM('mo-event');renderEvents();
+}
+
+// USER MODAL
+let _prSz=false;
+function selSz(v){_prSz=v;document.getElementById('pr-sy').className='tgb'+(v?' tmem':'');document.getElementById('pr-sn').className='tgb'+(!v?' tmem':'');}
+function openAddUserModal(){document.getElementById('usr-name').value='';document.getElementById('usr-pin').value='';document.getElementById('usr-role').value='officer';document.getElementById('usr-old').value='';openM('mo-user');}
+function saveUser(){
+  const name=document.getElementById('usr-name').value.trim();
+  const pin=String(document.getElementById('usr-pin').value).trim();
+  if(!name||!pin){alert('Name and PIN required');return;}
+  if(pin.length<4){alert('PIN must be at least 4 digits');return;}
+  const old=document.getElementById('usr-old').value;
+  if(old&&old!==pin)delete D.users[old];
+  D.users[pin]={name,role:document.getElementById('usr-role').value};
+  save();closeM('mo-user');renderSettings();
+}
+function openAddProductModal(){
+  document.getElementById('pr-name').value='';document.getElementById('pr-var').value='Standard';
+  document.getElementById('pr-mp').value='';document.getElementById('pr-vp').value='';document.getElementById('pr-cp').value='';
+  selSz(false);openM('mo-product');
+}
+function saveProduct(){
+  const name=document.getElementById('pr-name').value.trim();if(!name){alert('Product name required');return;}
+  D.products.push({id:uid(),name,category:document.getElementById('pr-cat').value,hasSizes:_prSz,variants:[{name:document.getElementById('pr-var').value.trim()||'Standard',memberPrice:parseFloat(document.getElementById('pr-mp').value)||0,visitorPrice:parseFloat(document.getElementById('pr-vp').value)||0,production:parseFloat(document.getElementById('pr-cp').value)||0}]});
+  save();closeM('mo-product');renderMerch();
+}
+
+// ── SETTINGS ──────────────────────────────────────────────────────
+function loadSettings(){
+  document.getElementById('set-cb').value=D.openingClub||0;
+  document.getElementById('set-hb').value=D.openingCharity||0;
+  document.getElementById('set-fee').value=D.memberFee||2000;
+  if(D.supabaseUrl)document.getElementById('set-su').value=D.supabaseUrl;
+  if(D.supabaseKey)document.getElementById('set-sk').value=D.supabaseKey;
+}
+function renderSettings(){
+  if(!CU||CU.role!=='admin')return;
+  document.getElementById('user-list-s').innerHTML=Object.entries(D.users).map(([pin,u])=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bd)">
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">${u.name}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase">${u.role}</div></div>
+      <div style="font-size:11px;color:var(--dim)">${'●'.repeat(pin.length)}</div>
+      <button onclick="editUser('${pin}')" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:11px">Edit</button>
+    </div>`).join('');
+  document.getElementById('sup-list-s').innerHTML=D.suppliers.map((s,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bd)">
+      <div style="flex:1;font-size:12px">${s}</div>
+      <button onclick="delSup(${i})" style="background:none;border:none;color:var(--rl);font-size:13px;cursor:pointer">✕</button>
+    </div>`).join('');
+}
+function editUser(pin){const u=D.users[pin];document.getElementById('usr-name').value=u.name;document.getElementById('usr-pin').value=pin;document.getElementById('usr-role').value=u.role;document.getElementById('usr-old').value=pin;openM('mo-user');}
+function saveBalances(){D.openingClub=parseFloat(document.getElementById('set-cb').value)||0;D.openingCharity=parseFloat(document.getElementById('set-hb').value)||0;save();renderDash();alert('Balances saved!');}
+function saveFee(){D.memberFee=parseFloat(document.getElementById('set-fee').value)||2000;save();alert('Fee saved!');document.getElementById('fee-d').textContent=(D.memberFee).toLocaleString();}
+function saveSync(){D.supabaseUrl=document.getElementById('set-su').value.trim();D.supabaseKey=document.getElementById('set-sk').value.trim();save();alert('Sync settings saved!');}
+function addSupplier(){const s=document.getElementById('new-sup').value.trim();if(!s)return;if(!D.suppliers.includes(s))D.suppliers.push(s);document.getElementById('new-sup').value='';save();renderSettings();}
+function delSup(i){D.suppliers.splice(i,1);save();renderSettings();}
+
+// ── REPORTS ──────────────────────────────────────────────────────
+function showReport(type){
+  const T={monthly:'📅 Monthly Statement',annual:'📆 Annual Summary',membership:'👥 Membership Report',merchandise:'🛍️ Merchandise Sales',donations:'🤝 Donation Report',suppliers:'🏪 Purchase Ledger',cogs:'📐 Cost of Goods',audit:'🔍 Audit Trail'};
+  document.getElementById('rpt-t').textContent=T[type]||'Report';
+  const fn={monthly:rMonth,annual:rAnnual,membership:rMem,merchandise:rMerch,donations:rDon,suppliers:rSup,cogs:rCOGS,audit:rAudit};
+  document.getElementById('rpt-b').innerHTML=(fn[type]||rMonth)();
+  openM('mo-report');
+}
+function br(l,v,c){return`<div class="brow"><span class="blbl">${l}</span><span style="font-size:15px;font-weight:700;color:${c||'var(--gl)'};">${v}</span></div>`;}
+function sumio(txs){const i=txs.filter(t=>t.direction==='in').reduce((a,t)=>a+parseFloat(t.amount||0),0),o=txs.filter(t=>t.direction==='out').reduce((a,t)=>a+parseFloat(t.amount||0),0);return{i,o,n:i-o};}
+function catBd(txs){const c={};txs.forEach(t=>{const a=(t.direction==='in'?1:-1)*(parseFloat(t.amount)||0);c[t.category]=(c[t.category]||0)+a;});return Object.entries(c).map(([k,v])=>br(CM[k]||k,thb(Math.abs(v)),v>=0?'var(--grnl)':'var(--rl)')).join('');}
+function rMonth(){const n=new Date(),l=n.toLocaleString('en-GB',{month:'long',year:'numeric'}),mt=mthTx(),c=sumio(mt.filter(t=>t.account==='club')),h=sumio(mt.filter(t=>t.account==='charity'));
+  return`<div style="font-size:12px;color:var(--muted);margin-bottom:12px">${l}</div>
+  <div class="balbar"><h3>🏍️ Club Account</h3>${br('Income',thb(c.i),'var(--grnl)')}${br('Expenses',thb(c.o),'var(--rl)')}${br('Net',thb(c.n))}</div>
+  <div class="balbar"><h3>❤️ Charity Account</h3>${br('Donations In',thb(h.i),'var(--grnl)')}${br('Out',thb(h.o),'var(--rl)')}${br('Net',thb(h.n))}</div>`;}
+function rAnnual(){const b=calcBal(),c=D.transactions.filter(t=>t.account==='club'),h=D.transactions.filter(t=>t.account==='charity');
+  return`<div class="balbar"><h3>🏍️ Club Account</h3>${catBd(c)}${br('Balance',thb(b.club))}</div>
+  <div class="balbar"><h3>❤️ Charity Account</h3>${catBd(h)}${br('Balance',thb(b.charity))}</div>`;}
+function rMem(){const paid=D.members.filter(m=>m.status==='paid'),un=D.members.filter(m=>m.status==='unpaid'),pr=D.members.filter(m=>m.status==='prospect');
+  const fe=un.reduce((a,m)=>a+calcFee(m.joinDate),0);
+  const RL={president:'President',vice_president:'Vice President',treasurer:'Treasurer',member:'Member',prospect:'Prospect'};
+  function mr(m){return`<div class="brow"><span class="blbl">${m.name}</span><span style="font-size:11px;color:var(--muted)">${RL[m.role]||m.role} · ${thb(calcFee(m.joinDate))}</span></div>`;}
+  return`<div class="balbar"><h3>✅ Paid (${paid.length})</h3>${paid.map(mr).join('')||'<div style="color:var(--dim);font-size:12px;padding:6px 0">None</div>'}</div>
+  <div class="balbar"><h3>⏳ Unpaid (${un.length}) — ${thb(fe)} outstanding</h3>${un.map(mr).join('')||'<div style="color:var(--dim);font-size:12px;padding:6px 0">None</div>'}</div>
+  <div class="balbar"><h3>👀 Prospects (${pr.length})</h3>${pr.map(m=>`<div class="brow"><span class="blbl">${m.name}</span><span style="font-size:11px;color:var(--muted)">${RL[m.role]||m.role}</span></div>`).join('')||'<div style="color:var(--dim);font-size:12px;padding:6px 0">None</div>'}</div>`;}
+function rMerch(){const s=D.transactions.filter(t=>t.category==='merchandise'),tot=s.reduce((a,t)=>a+parseFloat(t.amount||0),0),ms=s.filter(t=>t.customerType==='member').reduce((a,t)=>a+parseFloat(t.amount||0),0),vs=s.filter(t=>t.customerType==='visitor').reduce((a,t)=>a+parseFloat(t.amount||0),0);
+  const bp={};s.forEach(t=>{const k=t.description||'?';bp[k]=(bp[k]||0)+parseFloat(t.amount||0);});
+  return`<div class="balbar"><h3>👕 Merchandise Sales</h3>${br('Total',thb(tot))}${br('Member Sales',thb(ms),'var(--gold)')}${br('Visitor Sales',thb(vs),'var(--blul)')}${br('Transactions',s.length,'var(--muted)')}</div>
+  <div class="balbar"><h3>By Item (Top 10)</h3>${Object.entries(bp).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([d,v])=>br(d.length>32?d.slice(0,32)+'…':d,thb(v),'var(--gl)')).join('')||'<div style="color:var(--dim);font-size:12px">No sales yet</div>'}</div>`;}
+function rDon(){const di=D.transactions.filter(t=>['donation_in','collection_box'].includes(t.category)),dout=D.transactions.filter(t=>['donation_out','charity_cash','charity_goods','club_donation_out'].includes(t.category));
+  const it=di.reduce((a,t)=>a+parseFloat(t.amount||0),0),ot=dout.reduce((a,t)=>a+parseFloat(t.amount||0),0);
+  return`<div class="balbar"><h3>❤️ Donations</h3>${br('Received',thb(it),'var(--grnl)')}${br('Given Out',thb(ot),'var(--rl)')}${br('Net',thb(it-ot))}</div>
+  <div class="balbar"><h3>Payments Out</h3>${dout.length?dout.map(t=>`<div class="brow"><span class="blbl" style="font-size:11px">${t.description||CM[t.category]}</span><span style="color:var(--rl)">${thb(t.amount)}</span></div>`).join(''):'<div style="color:var(--dim);font-size:12px;padding:6px 0">None yet</div>'}</div>`;}
+function rSup(){const p=D.transactions.filter(t=>t.direction==='out'),tot=p.reduce((a,t)=>a+parseFloat(t.amount||0),0),bs={};
+  p.forEach(t=>{const s=t.supplier||'Unspecified';bs[s]=(bs[s]||0)+parseFloat(t.amount||0);});
+  return`<div class="balbar"><h3>🏪 Purchase Ledger</h3>${br('Total Spent',thb(tot),'var(--rl)')}${Object.entries(bs).sort((a,b)=>b[1]-a[1]).map(([s,v])=>br(s,thb(v),'var(--muted)')).join('')}</div>`;}
+function rCOGS(){return`<div class="balbar"><h3>📐 Cost of Goods</h3>${D.products.map(p=>`<div style="padding:8px 0;border-bottom:1px solid rgba(201,162,39,.1)"><div style="font-size:12px;font-weight:600;margin-bottom:4px">${p.name}</div>${p.variants.map(v=>`<div class="brow" style="padding:3px 0"><span class="blbl" style="font-size:11px">${v.name}</span><span style="font-size:10px;color:var(--muted)">Cost ${thb(v.production)} → Mem ${thb(v.memberPrice)} (margin ${thb(v.memberPrice-v.production)})</span></div>`).join('')}</div>`).join('')}</div>`;}
+function rAudit(){
+  if(!CU||CU.role!=='admin')return'<div class="empty">Admin only</div>';
+  const s=[...D.transactions].sort((a,b)=>new Date(b.created)-new Date(a.created));
+  return`<div style="font-size:11px;color:var(--muted);margin-bottom:10px">${s.length} total entries</div>${s.map(t=>`<div class="txi" style="font-size:11px"><div class="txic" style="font-size:15px">${txi(t)}</div><div class="txin"><div class="txd">${t.description||(CM[t.category]||t.category)}</div><div class="txm"><span class="ab ${t.account}">${t.account}</span>${fd(t.date)} · ${t.enteredBy||'?'}</div><div class="atag">REAL TIMESTAMP: ${fdt(t.created)}</div></div><div class="txa ${t.direction==='in'?'p':'n'}">${t.direction==='in'?'+':'-'}${thb(t.amount)}</div></div>`).join('')||'<div class="empty"><div class="ei">📋</div>No entries</div>'}`;}
+
+loadSettings();
+</script>
+</body>
+</html>
