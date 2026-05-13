@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.41</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.51</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -306,6 +306,21 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   </div>
   <div id="tab-ledger-list"><div class="empty"><div class="ei">&#128203;</div>No outstanding items</div></div>
 </div>
+<div class="scr" id="scr-po">
+  <div class="sh">
+    <div class="stitle">&#128230; Purchase Orders</div>
+    <button class="ib" id="po-add-btn" onclick="openNewPO()" style="font-size:20px;font-weight:300">+</button>
+  </div>
+  <div class="tabs" id="po-tabs">
+    <button class="tab on" data-cat="all" onclick="setPOTab(this,'all')">All</button>
+    <button class="tab" data-cat="draft" onclick="setPOTab(this,'draft')">Draft</button>
+    <button class="tab" data-cat="ordered" onclick="setPOTab(this,'ordered')">Ordered</button>
+    <button class="tab" data-cat="part_paid" onclick="setPOTab(this,'part_paid')">Part Paid</button>
+    <button class="tab" data-cat="paid" onclick="setPOTab(this,'paid')">Paid</button>
+    <button class="tab" data-cat="received" onclick="setPOTab(this,'received')">Received</button>
+  </div>
+  <div id="po-list"></div>
+</div>
 <div class="scr" id="scr-suppliers">
   <div class="sh"><div class="stitle">&#128230; Suppliers</div><button class="ib" onclick="openAddSupplier()" style="font-size:20px;font-weight:300">+</button></div>
   <div id="sup-list-s"></div>
@@ -324,6 +339,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       <button class="rb" onclick="showReport('membership')"><span class="rbi">&#128101;</span><div><div class="fml">Membership Report</div><div class="fms">Paid / unpaid / prospects / fees</div></div></button>
       <button class="rb" onclick="showReport('merchandise')"><span class="rbi">&#128717;&#65039;</span><div><div class="fml">Merchandise Sales</div><div class="fms">By product, member vs visitor, margins</div></div></button>
       <button class="rb" onclick="showReport('stock')"><span class="rbi">&#128230;</span><div><div class="fml">Stock Report</div><div class="fms">Current levels, low stock and out of stock</div></div></button>
+      <button class="rb" onclick="showReport('stockvalue')"><span class="rbi">&#128181;</span><div><div class="fml">Stock Value Report</div><div class="fms">Capital tied up in unsold stock at cost</div></div></button>
       <button class="rb" onclick="showReport('tabs')"><span class="rbi">&#128203;</span><div><div class="fml">Tab Debts Report</div><div class="fms">Outstanding and settled member tabs</div></div></button>
       <button class="rb" onclick="showReport('donations')"><span class="rbi">&#129309;</span><div><div class="fml">Donation Report</div><div class="fms">Charity in &amp; out by source/recipient</div></div></button>
       <button class="rb" onclick="showReport('suppliers')"><span class="rbi">&#127978;&#65039;</span><div><div class="fml">Purchase Ledger</div><div class="fms">By supplier and category</div></div></button>
@@ -465,7 +481,8 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 <div class="mo" id="mo-fab"><div class="modal">
   <div class="mh"><div class="mt">New Entry</div><button class="mc2" onclick="closeM('mo-fab')">&#10005;</button></div>
   <button class="fmi" onclick="openSaleModal()"><span class="fmic">&#128085;&#65039;</span><div><div class="fml">Merchandise Sale</div><div class="fms">Record sale &#8212; stock updated automatically</div></div></button>
-  <button class="fmi" onclick="openOrderModal()"><span class="fmic">&#128230;</span><div><div class="fml">Receive Stock Order</div><div class="fms">Add stock received from supplier</div></div></button>
+  <button class="fmi" onclick="closeM('mo-fab');goTo('po')"><span class="fmic">&#128230;</span><div><div class="fml">Purchase Order</div><div class="fms">Create PO, record payments, receive stock</div></div></button>
+  <button class="fmi" onclick="openOrderModal()"><span class="fmic">&#128230;</span><div><div class="fml">Quick Stock Receive</div><div class="fms">Simple stock receipt without a PO</div></div></button>
   <button class="fmi" onclick="openTxModal('in')"><span class="fmic">&#11014;&#65039;</span><div><div class="fml">Record Income</div><div class="fms">Donations, fees, event income&#8230;</div></div></button>
   <button class="fmi" onclick="openTxModal('out')"><span class="fmic">&#11015;&#65039;</span><div><div class="fml">Record Expense</div><div class="fms">Purchases, event costs, charity out&#8230;</div></div></button>
   <button class="fmi" onclick="openMemberModal()"><span class="fmic">&#128100;</span><div><div class="fml">Add Member / Prospect</div><div class="fms">New member or prospect</div></div></button>
@@ -583,6 +600,85 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     </div>
   </div>
 </div>
+<div class="mo" id="mo-po">
+  <div class="mob">
+    <div class="mh"><div class="mt" id="mo-po-t">New Purchase Order</div><button class="mc2" onclick="closeM('mo-po')">&#10005;</button></div>
+    <input type="hidden" id="po-id">
+    <div class="fg"><label>Description / What are you ordering?</label><input type="text" id="po-desc" placeholder="e.g. Club Shirts - Short Sleeve x20"></div>
+    <div class="fg irow">
+      <div><label>Supplier</label><input type="text" id="po-sup" list="po-sup-dl"><datalist id="po-sup-dl"></datalist></div>
+      <div><label>Date</label><input type="date" id="po-date"></div>
+    </div>
+    <div class="fg irow">
+      <div><label>Total Value (&#3647;)</label><input type="number" id="po-total" min="0" step="0.01" placeholder="0" oninput="updatePOBalance()"></div>
+      <div><label>Account</label><select id="po-account"><option value="club">&#128693; Club</option><option value="charity">&#10084; Charity</option></select></div>
+    </div>
+    <div class="fg"><label>Linked Product (for BOM / stock update)</label><select id="po-product"><option value="">&#8212; None (expense only) &#8212;</option></select></div>
+    <div class="fg irow" id="po-bom-row" style="display:none">
+      <div><label>Qty to add to stock on receipt</label><input type="number" id="po-qty" min="1" value="1"></div>
+      <div><label>Variant / Style</label><select id="po-variant"><option value="0">Standard</option></select></div>
+    </div>
+    <div class="fg" id="po-size-row" style="display:none">
+      <label>Size (if applicable)</label><select id="po-size"><option value="">None</option></select>
+    </div>
+    <div class="fg" id="po-colour-row" style="display:none">
+      <label>Colour (if applicable)</label><select id="po-colour"><option value="">None</option></select>
+    </div>
+    <div class="fg">
+      <label>Assembly Group <span style="font-size:10px;color:var(--muted)">(optional — link multiple POs to one finished product)</span></label>
+      <div style="display:flex;gap:8px">
+        <select id="po-assembly-group" style="flex:1"><option value="">&#8212; Standalone PO (not part of assembly) &#8212;</option></select>
+        <button type="button" onclick="createNewAssemblyGroup()" class="btn btn-out" style="font-size:11px;padding:4px 10px;white-space:nowrap">+ New Group</button>
+      </div>
+    </div>
+    <div class="fg"><label>Ref / PO Number</label><input type="text" id="po-ref" placeholder="Optional"></div>
+    <div class="fg"><label>Notes</label><textarea id="po-notes" style="height:50px"></textarea></div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-out" onclick="savePO('draft')" style="flex:1">Save as Draft</button>
+      <button class="btn btn-gold" onclick="savePO('ordered')" style="flex:1">Place Order</button>
+    </div>
+  </div>
+</div>
+<div class="mo" id="mo-po-payment">
+  <div class="mob">
+    <div class="mh"><div class="mt">Record Payment</div><button class="mc2" onclick="closeM('mo-po-payment')">&#10005;</button></div>
+    <input type="hidden" id="pop-po-id">
+    <div class="fg"><div style="font-size:11px;color:var(--muted);margin-bottom:4px">Outstanding Balance</div><div style="font-size:18px;font-weight:700;color:var(--rl)" id="pop-balance">&#3647;0</div></div>
+    <div class="fg irow">
+      <div><label>Amount Paid (&#3647;)</label><input type="number" id="pop-amount" min="0" step="0.01" placeholder="0"></div>
+      <div><label>Date</label><input type="date" id="pop-date"></div>
+    </div>
+    <div class="fg"><label>Ref / Receipt #</label><input type="text" id="pop-ref" placeholder="Optional"></div>
+    <div class="fg"><label>Payment Type / Notes</label><select id="pop-notes-sel" onchange="this.nextElementSibling.value=this.value;this.value=''" style="margin-bottom:4px"><option value="">Select type...</option><option value="Deposit">Deposit</option><option value="Part payment">Part payment</option><option value="Final payment">Final payment</option><option value="Full payment">Full payment</option></select><input type="text" id="pop-notes" placeholder="or type your own description"></div>
+    <button class="btn btn-gold" onclick="savePOPayment()" style="width:100%;margin-top:4px">Record Payment</button>
+  </div>
+</div>
+<div class="mo" id="mo-po-receive">
+  <div class="mob">
+    <div class="mh"><div class="mt">Confirm Stock Receipt</div><button class="mc2" onclick="closeM('mo-po-receive')">&#10005;</button></div>
+    <input type="hidden" id="por-po-id">
+    <div id="por-summary" style="font-size:12px;color:var(--muted);margin-bottom:10px"></div>
+    <div class="fg irow">
+      <div><label>Qty Received</label><input type="number" id="por-qty" min="1" value="1"></div>
+      <div><label>Date Received</label><input type="date" id="por-date"></div>
+    </div>
+    <div class="fg"><label>Notes</label><input type="text" id="por-notes" placeholder="Optional"></div>
+    <button class="btn btn-gold" onclick="confirmPOReceive()" style="width:100%;margin-top:4px">Confirm Receipt &amp; Update Stock</button>
+  </div>
+</div>
+<div class="mo" id="mo-assemble">
+  <div class="mob">
+    <div class="mh"><div class="mt">&#127381; Assemble Finished Product</div><button class="mc2" onclick="closeM('mo-assemble')">&#10005;</button></div>
+    <input type="hidden" id="asm-group-id">
+    <div id="asm-summary" style="background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:10px;margin-bottom:10px;font-size:12px"></div>
+    <div class="fg irow">
+      <div><label>Qty to Assemble</label><input type="number" id="asm-qty" min="1" value="1"></div>
+      <div><label>Date</label><input type="date" id="asm-date"></div>
+    </div>
+    <div class="fg"><label>Notes</label><input type="text" id="asm-notes" placeholder="Optional"></div>
+    <button class="btn btn-gold" onclick="confirmAssemble()" style="width:100%;margin-top:4px">&#127381; Confirm Assembly &amp; Add to Stock</button>
+  </div>
+</div>
 <div class="mo" id="mo-supplier">
   <div class="mob">
     <div class="mh"><div class="mt" id="mo-sup-t">Add Supplier</div><button class="mc2" onclick="closeM('mo-supplier')">&#10005;</button></div>
@@ -687,14 +783,14 @@ function def(){return{
   stock:{},
   users:{'8464':{name:'Mike',role:'admin'},'1111':{name:'Dennis',role:'officer'},'2222':{name:'Brian',role:'officer'},'3333':{name:'Simon',role:'officer'}},
   supabaseUrl:'',supabaseKey:'',
-  auditLog:[],sizes:['S','M','L','XL','2XL','3XL','4XL','5XL','6XL'],productCategories:[{id:'shirt',label:'Shirt'},{id:'trucker',label:'Trucker Hat'},{id:'stretch',label:'Stretch Hat'},{id:'keyring',label:'Keyring'},{id:'other',label:'Other'}],eventTypes:['party','ride','fundraiser','meeting','other'],incomeCategories:['merchandise','membership_fee','donation_in','collection_box','event_income','ride_income','other'],expenseCategories:['purchase','petty_cash','donation_out','event_expense','venue','music','marketing','charity_cash','charity_goods','club_donation_out','other']
+  auditLog:[],sizes:['S','M','L','XL','2XL','3XL','4XL','5XL','6XL'],productCategories:[{id:'shirt',label:'Shirt'},{id:'trucker',label:'Trucker Hat'},{id:'stretch',label:'Stretch Hat'},{id:'keyring',label:'Keyring'},{id:'other',label:'Other'}],purchaseOrders:[],eventTypes:['party','ride','fundraiser','meeting','other'],incomeCategories:['merchandise','membership_fee','donation_in','collection_box','event_income','ride_income','other'],expenseCategories:['purchase','petty_cash','donation_out','event_expense','venue','music','marketing','charity_cash','charity_goods','club_donation_out','other']
 };}
 
 // Load, migrate from old keys
 let D=null;
 for(const k of['remct4','remct3','remct2']){const r=localStorage.getItem(k);if(r){D=JSON.parse(r);break;}}
 if(!D)D=def();
-if(!D.colours)D.colours=[...DEF_COLS];if(!D.tabs)D.tabs=[];if(!D.auditLog)D.auditLog=[];if(!D.sizes)D.sizes=['S','M','L','XL','2XL','3XL','4XL','5XL','6XL'];SIZES=D.sizes;if(!D.productCategories)D.productCategories=[{id:'shirt',label:'Shirt'},{id:'trucker',label:'Trucker Hat'},{id:'stretch',label:'Stretch Hat'},{id:'keyring',label:'Keyring'},{id:'other',label:'Other'}];if(!D.eventTypes)D.eventTypes=['party','ride','fundraiser','meeting','other'];if(!D.incomeCategories)D.incomeCategories=['merchandise','membership_fee','donation_in','collection_box','event_income','ride_income','other'];if(!D.expenseCategories)D.expenseCategories=['purchase','petty_cash','donation_out','event_expense','venue','music','marketing','charity_cash','charity_goods','club_donation_out','other'];
+if(!D.colours)D.colours=[...DEF_COLS];if(!D.tabs)D.tabs=[];if(!D.auditLog)D.auditLog=[];if(!D.sizes)D.sizes=['S','M','L','XL','2XL','3XL','4XL','5XL','6XL'];SIZES=D.sizes;if(!D.productCategories)D.productCategories=[{id:'shirt',label:'Shirt'},{id:'trucker',label:'Trucker Hat'},{id:'stretch',label:'Stretch Hat'},{id:'keyring',label:'Keyring'},{id:'other',label:'Other'}];if(!D.purchaseOrders)D.purchaseOrders=[];if(!D.eventTypes)D.eventTypes=['party','ride','fundraiser','meeting','other'];if(!D.incomeCategories)D.incomeCategories=['merchandise','membership_fee','donation_in','collection_box','event_income','ride_income','other'];if(!D.expenseCategories)D.expenseCategories=['purchase','petty_cash','donation_out','event_expense','venue','music','marketing','charity_cash','charity_goods','club_donation_out','other'];
 if(D.suppliers&&D.suppliers.length&&typeof D.suppliers[0]==='string'){D.suppliers=D.suppliers.map(function(s,i){return{id:'s'+(i+1),name:s,phone:'',email:'',website:'',contact:'',address:''};});}
 // Migrate existing transactions to have paid:true if missing
 D.transactions.forEach(function(t){if(t.paid===undefined)t.paid=true;if(!t.responsibleMemberId)t.responsibleMemberId='';});
@@ -1009,7 +1105,7 @@ function goTo(n){
   document.getElementById('scr-'+n).classList.add('on');
   var nb=document.getElementById('nb-'+n);if(nb)nb.classList.add('on');
   document.getElementById('fab').style.display=n==='more'?'none':'flex';
-  ({dash:renderDash,ledger:renderLedger,members:renderMembers,merch:()=>{renderMerch();renderStock();},tabs:renderTabLedger,events:renderEvents,suppliers:renderSuppliers,products:renderProducts,more:renderSettings}[n]||(() =>{}))();
+  ({dash:renderDash,ledger:renderLedger,members:renderMembers,merch:()=>{renderMerch();renderStock();},tabs:renderTabLedger,events:renderEvents,po:renderPOs,suppliers:renderSuppliers,products:renderProducts,more:renderSettings}[n]||(() =>{}))();
   updateBackBtn(n==='dash'?'scr-dash':'scr-'+n);
 }
 function setLTab(b,v){document.querySelectorAll('#ledger-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');LF=v;renderLedger();}
@@ -1017,7 +1113,7 @@ function setMTab(b,v){document.querySelectorAll('#mem-tabs .tab').forEach(t=>t.c
 function setRTab(b,v){document.querySelectorAll('#merch-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');RF=v;renderMerch();}
 function setSTab(b,v){document.querySelectorAll('#stock-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');STF=v;renderStock();}
 function setMV(v){MV=v;document.getElementById('mvt-cat').classList.toggle('on',v==='catalogue');document.getElementById('mvt-stock').classList.toggle('on',v==='stock');document.getElementById('merch-catalogue').style.display=v==='catalogue'?'':'none';document.getElementById('merch-stock').style.display=v==='stock'?'':'none';if(v==='stock')renderStock();}
-function renderAll(){renderDash();renderLedger();renderMembers();renderMerch();renderStock();renderTabLedger();renderEvents();renderSuppliers();renderProducts();}
+function renderAll(){renderDash();renderLedger();renderMembers();renderMerch();renderStock();renderTabLedger();renderEvents();renderPOs();renderSuppliers();renderProducts();}
 
 // Utils
 function thb(n){return'&#3647;'+(Math.round(n)||0).toLocaleString();}
@@ -1078,8 +1174,12 @@ function renderDash(){
   const tabOwed=openTabs.reduce((a,t)=>a+parseFloat(t.amount||0),0);
   const unpaidIn=unpaidTx.filter(t=>t.direction==='in').reduce((a,t)=>a+parseFloat(t.amount||0),0);
   const unpaidOut=unpaidTx.filter(t=>t.direction==='out').reduce((a,t)=>a+parseFloat(t.amount||0),0);
+  // Add PO outstanding balances to tab debt
+  const poOutstanding=(D.purchaseOrders||[]).filter(function(po){
+    return po.status!=='received'&&po.status!=='draft'&&poBalance(po)>0;
+  }).reduce(function(a,po){return a+poBalance(po);},0);
   document.getElementById('db-tabs').textContent=totalTabItems;
-  document.getElementById('db-tabamt').innerHTML=thb(tabOwed+unpaidIn);
+  document.getElementById('db-tabamt').innerHTML=thb(tabOwed+unpaidIn+poOutstanding);
   const rec=[...D.transactions].reverse().slice(0,8);
   document.getElementById('db-tx').innerHTML=rec.length?rec.map(txCard).join(''):'<div class="empty"><div class="ei">&#128203;</div>No transactions yet</div>';
   var dbt=document.getElementById('db-tx');if(dbt&&!dbt._txd){dbt._txd=true;dbt.addEventListener('click',function(e){var t=e.target;while(t&&t!==dbt){if(t.dataset&&t.dataset.txid){openTxEdit(t.dataset.txid);return;}t=t.parentElement;}});}
@@ -1567,7 +1667,9 @@ function renderSettings(){
           const rowLbl=[sz,c.name].filter(Boolean).join(', ')||'(all)';
           shtml+=`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bd)">
             <div style="flex:1;font-size:11px">${lbl} &mdash; ${rowLbl}</div>
+            <div style="font-size:10px;color:var(--muted)">Stock: ${getStock(p.id,v.id,sz||null,c.name)}</div>
             <input type="number" value="${cur}" min="0" data-pid="${p.id}" data-vid="${v.id}" data-sz="${sz||''}" data-col="${c.name}" style="width:60px;padding:6px 8px;font-size:13px;text-align:center" onchange="setIS(this)">
+            <button onclick="resetStockKey('${p.id}','${v.id}','${sz||''}','${c.name}')" style="background:none;border:none;color:var(--rl);font-size:11px;cursor:pointer;padding:2px 4px;flex-shrink:0" title="Reset all stock to zero">&#8635;</button>
           </div>`;
         });
       });
@@ -1700,7 +1802,7 @@ function delSup(sid){var idx=D.suppliers.findIndex(function(x){return x.id===sid
 function showReport(type){
   const T={monthly:'&#128197; Monthly Statement',meeting:'&#128101; Club Meeting Report',annual:'&#128198; Annual Summary',membership:'&#128101; Membership Report',merchandise:'&#128717;&#65039; Merchandise Sales',stock:'&#128230; Stock Report',tabs:'&#128203; Tab Debts Report',donations:'&#129309; Donation Report',suppliers:'&#127978;&#65039; Purchase Ledger',cogs:'&#128208; Cost of Goods',analysis:'&#128202; Analysis Report',audit:'&#128269; Audit Trail'};
   document.getElementById('rpt-t').innerHTML=T[type]||'Report';
-  const fn={monthly:rMonth,meeting:rMeeting,annual:rAnnual,membership:rMem,merchandise:rMerch,stock:rStock,tabs:rTabs,donations:rDon,suppliers:rSup,cogs:rCOGS,analysis:rAnalysis,audit:rAudit};
+  const fn={monthly:rMonth,meeting:rMeeting,annual:rAnnual,membership:rMem,merchandise:rMerch,stock:rStock,tabs:rTabs,donations:rDon,suppliers:rSup,cogs:rCOGS,analysis:rAnalysis,audit:rAudit,stockvalue:rStockValue};
   document.getElementById('rpt-b').innerHTML=(fn[type]||rMonth)();
   var pdfBtn=document.getElementById('rpt-pdf-btn');
   if(pdfBtn)pdfBtn.style.display='';
@@ -1936,6 +2038,22 @@ function renderMeeting(){
     +'<div class="balbar"><h3>&#128230; Merchandise Stock</h3>'
     +stockRows.map(function(r){return br(r.name,r.total===0?'Out of Stock':r.total,(r.total===0?'var(--rl)':r.total<=(D.lowStockThreshold||5)?'var(--warn)':'var(--grnl)'));}).join('')
     +'</div>';
+  // Stock value section
+  var svTotal=0;var svRows=[];
+  D.products.filter(function(p){return!p.archived;}).forEach(function(p){
+    p.variants.forEach(function(v){
+      var prodCost=parseFloat(v.production||0);if(!prodCost)return;
+      var cols=prodColours(p);var szs=p.hasSizes?(p.sizes||SIZES):[null];
+      szs.forEach(function(sz){cols.forEach(function(c){
+        var qty=getStock(p.id,v.id,sz||null,c.name||'');
+        if(qty>0){var val=qty*prodCost;svTotal+=val;svRows.push({name:p.name+' '+v.name+(sz?' '+sz:'')+(c.name?' '+c.name:''),qty:qty,val:val});}
+      });});
+    });
+  });
+  h+='<div class="balbar"><h3>&#128181; STOCK VALUE AT COST</h3>'
+    +(svRows.length?svRows.map(function(r){return'<div class="brow"><span class="blbl">'+r.name+'</span><span style="font-size:11px;color:var(--muted)">'+r.qty+' &times; </span><span style="font-weight:600">'+thb(r.val)+'</span></div>';}).join(''):'<div style="font-size:12px;color:var(--dim);padding:4px 0">No stock with production costs set</div>')
+    +'<div class="brow" style="font-weight:700"><span class="blbl">Total Stock Value at Cost</span><span style="font-weight:700;color:var(--rl)">'+thb(svTotal)+'</span></div>'
+    +'</div>';
   el.innerHTML=h;
 }
 function checkAnnualFeeReset(){
@@ -2103,6 +2221,10 @@ function deleteTxEdit(){
     if(tx.category==='merchandise'&&tx.productId&&tx.qty){
       adjStock(tx.productId,tx.variantId,tx.size||null,tx.colour||'',-tx.qty,'sold');
     }
+    // If deleting a quick stock receive, reverse the stock addition
+    if(tx.category==='stock_order'&&tx.productId&&tx.qty){
+      adjStock(tx.productId,tx.variantId,tx.size||null,tx.colour||'',-tx.qty,'ordered');
+    }
   }
   D.transactions=D.transactions.filter(t=>t.id!==id);
   save();closeM('mo-tx-edit');renderAll();
@@ -2146,6 +2268,599 @@ function renderProducts(){
       +'<div style="font-size:10px;color:var(--muted);margin-top:2px">'+(getProdCats().find(function(c){return c.id===p.category;})||{label:p.category}).label+(varList?' • '+varList:'')+(p.memberOnly?' • Members Only':'')+'</div>'
       +'</div>'+editBtn+'</div>';
   }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+// PURCHASE ORDER SYSTEM
+// ══════════════════════════════════════════════════════════════
+var _poFilter='all';
+
+const PO_STATUS={
+  draft:    {label:'Draft',     col:'var(--muted)'},
+  ordered:  {label:'Ordered',   col:'var(--gold)'},
+  part_paid:{label:'Part Paid', col:'var(--warn)'},
+  paid:     {label:'Paid',      col:'var(--grn)'},
+  part_received:{label:'Part Rcvd',col:'var(--warn)'},
+  received: {label:'Received',  col:'var(--grn)'}
+};
+
+function setPOTab(btn,val){
+  document.querySelectorAll('#po-tabs .tab').forEach(function(t){t.classList.remove('on');});
+  btn.classList.add('on');
+  _poFilter=val;
+  renderPOs();
+}
+
+function poPaid(po){
+  return (po.payments||[]).reduce(function(a,p){return a+p.amount;},0);
+}
+
+function poBalance(po){
+  return Math.max(0,(po.total||0)-poPaid(po));
+}
+
+function updatePOBalance(){
+  // Called when total changes in PO modal - no UI balance shown in create modal
+}
+
+function renderPOs(){
+  if(!D.purchaseOrders)D.purchaseOrders=[];
+  var el=document.getElementById('po-list');if(!el)return;
+  var pos=D.purchaseOrders;
+  if(_poFilter!=='all')pos=pos.filter(function(p){return p.status===_poFilter;});
+  pos=[...pos].sort(function(a,b){return(b.date||'').localeCompare(a.date||'');});
+  if(!pos.length){
+    el.innerHTML='<div class="empty"><div class="ei">&#128230;</div>'
+      +(_poFilter==='all'?'No purchase orders yet':'No '+(_poFilter)+' orders')+'</div>';
+    return;
+  }
+  window._poArr=pos;
+  el.innerHTML=pos.map(function(po,i){
+    var paid=poPaid(po);
+    var bal=poBalance(po);
+    var st=PO_STATUS[po.status]||{label:po.status,col:'var(--muted)'};
+    var prod=po.productId?D.products.find(function(p){return p.id===po.productId;}):null;
+    return '<div style="background:var(--sf2);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:8px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">'
+      +'<div style="font-size:13px;font-weight:600;flex:1;margin-right:8px">'+po.desc+'</div>'
+      +'<span style="font-size:10px;font-weight:700;color:'+st.col+';white-space:nowrap;background:var(--sf);padding:2px 8px;border-radius:10px;border:1px solid '+st.col+'">'+st.label+'</span>'
+      +'</div>'
+      +'<div style="font-size:11px;color:var(--muted);margin-bottom:4px">'
+      +(po.supplier?'&#127978;&#65039; '+po.supplier+'  &bull;  ':'')
+      +'&#128197; '+(po.date||'')
+      +(prod?'  &bull;  &#128085;&#65039; '+prod.name:'')+(po.assemblyGroupName?'  &bull;  &#127381; '+po.assemblyGroupName:'')
+      +'</div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">'
+      +'<div style="font-size:12px">'
+      +'<span style="color:var(--muted)">Total: </span><span style="font-weight:600">'+thb(po.total||0)+'</span>'
+      +(paid>0?'  <span style="color:var(--muted)">Paid: </span><span style="color:var(--grn);font-weight:600">'+thb(paid)+'</span>':'')
+      +(bal>0?'  <span style="color:var(--muted)">Bal: </span><span style="color:var(--rl);font-weight:600">'+thb(bal)+'</span>':'')
+      +'</div>'
+      +'<button onclick="_poOpen(window._poArr['+i+'].id)" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:8px;padding:3px 10px;cursor:pointer;font-size:11px">View</button>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function _poOpen(id){
+  var po=D.purchaseOrders.find(function(p){return p.id===id;});
+  if(!po)return;
+  openPODetail(po);
+}
+
+function openNewPO(){
+  document.getElementById('mo-po-t').textContent='New Purchase Order';
+  document.getElementById('po-id').value='';
+  document.getElementById('po-desc').value='';
+  document.getElementById('po-date').value=nd();
+  document.getElementById('po-total').value='';
+  document.getElementById('po-ref').value='';
+  document.getElementById('po-notes').value='';
+  document.getElementById('po-account').value='club';
+  // Populate supplier datalist
+  document.getElementById('po-sup-dl').innerHTML=[...D.suppliers].sort(function(a,b){
+    return(a.name||'').localeCompare(b.name||'');
+  }).map(function(s){return'<option value="'+(s.name||s)+'">';}).join('');
+  document.getElementById('po-sup').value='';
+  // Populate product select
+  var pSel=document.getElementById('po-product');
+  pSel.innerHTML='<option value="">&#8212; None (expense only) &#8212;</option>'
+    +D.products.filter(function(p){return!p.archived;}).map(function(p){
+      return'<option value="'+p.id+'">'+p.name+'</option>';
+    }).join('');
+  pSel.onchange=updatePOProductFields;
+  updatePOProductFields();
+  openM('mo-po');
+}
+
+function updatePOProductFields(){
+  var pid=document.getElementById('po-product').value;
+  var bomRow=document.getElementById('po-bom-row');
+  var colRow=document.getElementById('po-colour-row');
+  var szRow=document.getElementById('po-size-row');
+  if(!pid){
+    if(bomRow)bomRow.style.display='none';
+    if(colRow)colRow.style.display='none';
+    if(szRow)szRow.style.display='none';
+    return;
+  }
+  var p=D.products.find(function(x){return x.id===pid;});
+  if(!p){if(bomRow)bomRow.style.display='none';return;}
+  if(bomRow)bomRow.style.display='';
+  // Variants
+  var varSel=document.getElementById('po-variant');
+  if(varSel&&p.variants&&p.variants.length){
+    varSel.innerHTML=p.variants.map(function(v,i){return'<option value="'+i+'">'+v.name+'</option>';}).join('');
+  }
+  // Sizes
+  if(p.sizes&&p.sizes.length){
+    if(szRow)szRow.style.display='';
+    var szSel=document.getElementById('po-size');
+    if(szSel)szSel.innerHTML='<option value="">None</option>'+p.sizes.map(function(s){return'<option value="'+s+'">'+s+'</option>';}).join('');
+  } else {
+    if(szRow)szRow.style.display='none';
+  }
+  // Colours
+  var cols=p.colours||[];
+  if(cols.length>1){
+    if(colRow)colRow.style.display='';
+    var cSel=document.getElementById('po-colour');
+    if(cSel)cSel.innerHTML='<option value="">None</option>'+cols.map(function(c){return'<option value="'+c+'">'+c+'</option>';}).join('');
+  } else {
+    if(colRow)colRow.style.display='none';
+  }
+}
+
+function savePO(status){
+  try{
+  if(!D.purchaseOrders)D.purchaseOrders=[];
+  var desc=document.getElementById('po-desc').value.trim();
+  if(!desc){alert('Please enter a description.');return;}
+  var total=parseFloat(document.getElementById('po-total').value)||0;
+  if(total<=0){alert('Please enter the total order value.');return;}
+  var id=document.getElementById('po-id').value;
+  var pid=document.getElementById('po-product').value;
+  var asel=document.getElementById('po-assembly-group');
+  var agid=asel?asel.value:'';
+  var agName='';
+  if(agid){
+    var allGroups=getAssemblyGroups();
+    if(window._newAssemblyGroups&&typeof window._newAssemblyGroups==='object')Object.assign(allGroups,window._newAssemblyGroups);
+    agName=allGroups[agid]||'';
+  }
+  var po={
+    id:id||uid(),
+    desc:desc,
+    supplier:document.getElementById('po-sup').value.trim(),
+    date:document.getElementById('po-date').value,
+    total:total,
+    account:document.getElementById('po-account').value,
+    ref:document.getElementById('po-ref').value.trim(),
+    notes:document.getElementById('po-notes').value.trim(),
+    productId:pid||null,
+    qty:pid?parseInt(document.getElementById('po-qty').value)||1:0,
+    variantIdx:pid?parseInt(document.getElementById('po-variant').value)||0:0,
+    size:pid?document.getElementById('po-size').value:'',
+    colour:pid&&document.getElementById('po-colour-row').style.display!=='none'?document.getElementById('po-colour').value:'',
+    assemblyGroup:agid||null,
+    assemblyGroupName:agName||null,
+    status:status,
+    payments:[],
+    createdBy:CU.name,
+    created:ni()
+  };
+  if(id){
+    // Edit existing
+    var existing=D.purchaseOrders.find(function(p){return p.id===id;});
+    if(existing){
+      po.payments=existing.payments||[];
+      po.created=existing.created;
+      po.createdBy=existing.createdBy;
+      var poIdx=D.purchaseOrders.indexOf(existing);
+      D.purchaseOrders[poIdx]=po;
+      audit('PO_EDIT','Edited PO: '+desc+' '+thb(total));
+    }
+  } else {
+    D.purchaseOrders.push(po);
+    audit('PO_CREATE','Created PO ('+status+'): '+desc+' '+thb(total));
+  }
+  save();closeM('mo-po');renderPOs();
+  }catch(e){alert('Error saving PO: '+e.message);console.error(e);}
+}
+
+function openEditPO(id){
+  var po=D.purchaseOrders.find(function(p){return p.id===id;});
+  if(!po)return;
+  document.getElementById('mo-po-t').textContent='Edit Purchase Order';
+  document.getElementById('po-id').value=po.id;
+  document.getElementById('po-desc').value=po.desc||'';
+  document.getElementById('po-sup').value=po.supplier||'';
+  document.getElementById('po-date').value=po.date||nd();
+  document.getElementById('po-total').value=po.total||0;
+  document.getElementById('po-account').value=po.account||'club';
+  document.getElementById('po-ref').value=po.ref||'';
+  document.getElementById('po-notes').value=po.notes||'';
+  document.getElementById('po-sup-dl').innerHTML=[...D.suppliers].sort(function(a,b){
+    return(a.name||'').localeCompare(b.name||'');
+  }).map(function(s){return'<option value="'+(s.name||s)+'">';}).join('');
+  var pSel=document.getElementById('po-product');
+  pSel.innerHTML='<option value="">&#8212; None (expense only) &#8212;</option>'
+    +D.products.filter(function(p){return!p.archived;}).map(function(p){
+      return'<option value="'+p.id+'">'+p.name+'</option>';
+    }).join('');
+  pSel.value=po.productId||'';
+  pSel.onchange=updatePOProductFields;
+  updatePOProductFields();
+  if(po.size){var szSel=document.getElementById('po-size');if(szSel)szSel.value=po.size;}
+  if(po.colour){var cSel=document.getElementById('po-colour');if(cSel)cSel.value=po.colour;}
+  if(po.qty){document.getElementById('po-qty').value=po.qty;}
+  openM('mo-po');
+}
+
+function openPOPayment(id){
+  var po=D.purchaseOrders.find(function(p){return p.id===id;});
+  if(!po)return;
+  document.getElementById('pop-po-id').value=id;
+  document.getElementById('pop-amount').value='';
+  document.getElementById('pop-date').value=nd();
+  document.getElementById('pop-ref').value='';
+  document.getElementById('pop-notes').value='';
+  var bal=poBalance(po);
+  var balEl=document.getElementById('pop-balance');
+  if(balEl)balEl.innerHTML=thb(bal);
+  openM('mo-po-payment');
+}
+
+function savePOPayment(){
+  var id=document.getElementById('pop-po-id').value;
+  var po=D.purchaseOrders.find(function(p){return p.id===id;});
+  if(!po)return;
+  var amt=parseFloat(document.getElementById('pop-amount').value)||0;
+  if(amt<=0){alert('Please enter an amount.');return;}
+  var bal=poBalance(po);
+  if(amt>bal+0.01){alert('Payment exceeds outstanding balance of '+thb(bal));return;}
+  if(!po.payments)po.payments=[];
+  var payment={
+    id:uid(),
+    amount:amt,
+    date:document.getElementById('pop-date').value,
+    ref:document.getElementById('pop-ref').value.trim(),
+    notes:document.getElementById('pop-notes').value.trim(),
+    by:CU.name,
+    ts:ni()
+  };
+  po.payments.push(payment);
+  // Create expense transaction
+  D.transactions.push({
+    id:uid(),
+    account:po.account||'club',
+    direction:'out',
+    category:'purchase',
+    amount:amt,
+    description:'PO Payment: '+po.desc+(payment.notes?' ('+payment.notes+')':''),
+    supplier:po.supplier||'',
+    ref:payment.ref||po.ref||'',
+    date:payment.date,
+    created:ni(),
+    enteredBy:CU.name,
+    paid:true,
+    poId:id
+  });
+  // Update PO status
+  var newPaid=poPaid(po);
+  if(newPaid>=po.total-0.01){
+    if(po.status==='received'||po.status==='part_received'){}
+    else po.status='paid';
+  } else {
+    if(po.status==='ordered'||po.status==='draft')po.status='part_paid';
+  }
+  audit('PO_PAYMENT','Payment of '+thb(amt)+' against PO: '+po.desc);
+  save();closeM('mo-po-payment');renderAll();
+  openPODetail(po);
+}
+
+function openPOReceive(id){
+  var po=D.purchaseOrders.find(function(p){return p.id===id;});
+  if(!po)return;
+  if(!po.productId){alert('This PO has no linked product. Cannot update stock directly.');return;}
+  document.getElementById('por-po-id').value=id;
+  document.getElementById('por-date').value=nd();
+  document.getElementById('por-notes').value='';
+  document.getElementById('por-qty').value=po.qty||1;
+  var sumEl=document.getElementById('por-summary');
+  if(sumEl){
+    var prod=D.products.find(function(p){return p.id===po.productId;});
+    sumEl.innerHTML='<b>'+(prod?prod.name:'Product')+'</b>'
+      +(po.size?' &bull; Size: '+po.size:'')
+      +(po.colour?' &bull; Colour: '+po.colour:'')
+      +'<br>Ordered qty: '+po.qty;
+  }
+  openM('mo-po-receive');
+}
+
+function confirmPOReceive(){
+  var id=document.getElementById('por-po-id').value;
+  var po=D.purchaseOrders.find(function(p){return p.id===id;});
+  if(!po)return;
+  var qty=parseInt(document.getElementById('por-qty').value)||0;
+  if(qty<=0){alert('Please enter quantity received.');return;}
+  var p=D.products.find(function(x){return x.id===po.productId;});
+  if(!p){alert('Product not found.');return;}
+  var vi=po.variantIdx||0;var v=p.variants&&(p.variants[vi]||p.variants[0]);
+  if(!v){alert('Product has no variants.');return;}
+  var col=po.colour||stockCol(p,'');
+  adjStock(p.id,v.id,po.size||null,col,qty,'ordered');
+  po.status='received';
+  po.receivedQty=qty;
+  po.receivedDate=document.getElementById('por-date').value;
+  po.receivedNotes=document.getElementById('por-notes').value.trim();
+  audit('PO_RECEIVE','Received '+qty+' units for PO: '+po.desc);
+  save();closeM('mo-po-receive');renderAll();
+}
+
+function openPODetail(po){
+  window._currentPO=po;
+  // Show full PO details in a modal - build dynamic content
+  var paid=poPaid(po);
+  var bal=poBalance(po);
+  var st=PO_STATUS[po.status]||{label:po.status,col:'var(--muted)'};
+  var prod=po.productId?D.products.find(function(p){return p.id===po.productId;}):null;
+  var canEdit=po.status==='draft'||po.status==='ordered';
+  var canPay=bal>0.01;
+  var canReceive=po.productId&&(po.status==='paid'||po.status==='part_paid'||po.status==='ordered');
+  var canAssemble=po.assemblyGroup&&!po.assembled&&(function(){var s=getBOMGroupStatus(po.assemblyGroup);return s&&s.allReceived&&!s.assembled;})();
+
+  var html='<div style="font-size:20px;font-weight:700;margin-bottom:4px">'+po.desc+'</div>'
+    +'<div style="margin-bottom:8px"><span style="font-size:11px;font-weight:700;color:'+st.col+';background:var(--sf);padding:2px 10px;border-radius:10px;border:1px solid '+st.col+'">'+st.label+'</span></div>'
+    +(po.supplier?'<div style="font-size:12px;color:var(--muted);margin-bottom:3px">&#127978;&#65039; '+po.supplier+'</div>':'')
+    +'<div style="font-size:12px;color:var(--muted);margin-bottom:3px">&#128197; '+po.date+(po.ref?' &bull; Ref: '+po.ref:'')+'</div>'
+    +(prod?'<div style="font-size:12px;color:var(--muted);margin-bottom:3px">&#128085;&#65039; '+prod.name+(po.size?' &bull; '+po.size:'')+(po.colour?' &bull; '+po.colour:'')+(po.qty?' &bull; Qty: '+po.qty:'')+'</div>':'')
+    +(po.notes?'<div style="font-size:11px;color:var(--dim);margin-bottom:8px;font-style:italic">'+po.notes+'</div>':'')
+    +(po.assemblyGroup?'<div style="font-size:11px;color:var(--gold);margin-bottom:6px">&#127381; Assembly Group: '+po.assemblyGroupName+'</div>':'')
+    +(po.assembled?'<div style="font-size:11px;color:var(--grn);margin-bottom:6px">&#10003; Assembled on '+po.assembledDate+' (qty: '+po.assembledQty+')</div>':'')
+    +'<div style="display:flex;gap:12px;margin-bottom:10px">'
+    +'<div><div style="font-size:10px;color:var(--muted)">TOTAL</div><div style="font-size:16px;font-weight:700">'+thb(po.total||0)+'</div></div>'
+    +'<div><div style="font-size:10px;color:var(--muted)">PAID</div><div style="font-size:16px;font-weight:700;color:var(--grn)">'+thb(paid)+'</div></div>'
+    +'<div><div style="font-size:10px;color:var(--muted)">BALANCE</div><div style="font-size:16px;font-weight:700;color:'+(bal>0?'var(--rl)':'var(--grn)')+'">'+thb(bal)+'</div></div>'
+    +'</div>';
+
+  // Payment history
+  if(po.payments&&po.payments.length){
+    html+='<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Payments</div>';
+    po.payments.forEach(function(pay){
+      html+='<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--bd);font-size:11px">'
+        +'<span>'+pay.date+(pay.notes?' &bull; '+pay.notes:'')+'</span>'
+        +'<span style="font-weight:700;color:var(--grn)">'+thb(pay.amount)+'</span>'
+        +'</div>';
+    });
+    html+='<div style="margin-bottom:8px"></div>';
+  }
+
+  // Action buttons
+  html+='<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">';
+  if(canEdit)html+='<button onclick="editPOFromDetail(window._currentPO.id)" class="btn btn-out" style="font-size:11px;padding:5px 10px">&#9998; Edit</button>';
+  if(canPay)html+='<button onclick="payPOFromDetail(window._currentPO.id)" class="btn btn-gold" style="font-size:11px;padding:5px 10px">&#128176; Record Payment</button>';
+  if(canReceive)html+='<button onclick="receivePOFromDetail(window._currentPO.id)" class="btn" style="font-size:11px;padding:5px 10px;background:var(--grn);border-color:var(--grn);color:#fff">&#128230; Receive Stock</button>';
+  if(canAssemble)html+='<button onclick="openAssembleModal(window._currentPO.assemblyGroup)" class="btn" style="font-size:11px;padding:5px 10px;background:var(--gold);border-color:var(--gold);color:#000">&#127381; Assemble</button>';
+  if(CU&&CU.role==='admin')html+='<button onclick="deletePO(window._currentPO.id)" class="btn" style="font-size:11px;padding:5px 10px;background:var(--rl);border-color:var(--rl);color:#fff">&#10005; Delete</button>';
+  html+='</div>';
+
+  var rptB=document.getElementById('rpt-b');
+  var rptT=document.getElementById('rpt-t');
+  var rptPdf=document.getElementById('rpt-pdf-btn');
+  if(rptT)rptT.textContent='Purchase Order';
+  if(rptB)rptB.innerHTML=html;
+  if(rptPdf)rptPdf.style.display='none';
+  openM('mo-report');
+}
+
+function editPOFromDetail(id){closeM('mo-report');openEditPO(id);}
+function payPOFromDetail(id){closeM('mo-report');openPOPayment(id);}
+function receivePOFromDetail(id){closeM('mo-report');openPOReceive(id);}
+
+function deletePO(id){
+  if(!CU||CU.role!=='admin'){alert('Admin only.');return;}
+  if(!confirm('Delete this purchase order? Payments already recorded in the Ledger will remain.'))return;
+  D.purchaseOrders=D.purchaseOrders.filter(function(p){return p.id!==id;});
+  audit('PO_DELETE','Deleted PO id: '+id);
+  save();closeM('mo-report');renderPOs();
+}
+
+// ══════════════════════════════════════════════════════════════
+// BILL OF MATERIALS / ASSEMBLY
+// ══════════════════════════════════════════════════════════════
+
+function getAssemblyGroups(){
+  var groups={};
+  (D.purchaseOrders||[]).forEach(function(po){
+    if(po.assemblyGroup&&po.assemblyGroupName){
+      groups[po.assemblyGroup]=po.assemblyGroupName;
+    }
+  });
+  return groups;
+}
+
+function createNewAssemblyGroup(){
+  var name=prompt('Assembly group name (e.g. Support Hat Batch 1):');
+  if(!name||!name.trim())return;
+  var id=uid();
+  window._newAssemblyGroups=window._newAssemblyGroups||{};
+  window._newAssemblyGroups[id]=name.trim();
+  populateAssemblyGroups(id);
+}
+
+function populateAssemblyGroups(selectId){
+  var sel=document.getElementById('po-assembly-group');
+  if(!sel)return;
+  var groups=getAssemblyGroups();
+  if(window._newAssemblyGroups&&typeof window._newAssemblyGroups==='object')Object.assign(groups,window._newAssemblyGroups);
+  var cur=selectId||sel.value;
+  sel.innerHTML='<option value="">&#8212; Standalone PO &#8212;</option>'
+    +Object.keys(groups).map(function(id){
+      return'<option value="'+id+'">'+groups[id]+'</option>';
+    }).join('');
+  if(cur)sel.value=cur;
+}
+
+function getBOMGroupStatus(groupId){
+  var pos=(D.purchaseOrders||[]).filter(function(po){return po.assemblyGroup===groupId;});
+  if(!pos.length)return null;
+  var allReceived=pos.every(function(po){return po.status==='received'||po.assembled;});
+  var totalCost=pos.reduce(function(a,po){return a+(po.total||0);},0);
+  var totalPaid=pos.reduce(function(a,po){return a+poPaid(po);},0);
+  var prodPO=pos.find(function(po){return po.productId;});
+  return{pos:pos,allReceived:allReceived,totalCost:totalCost,totalPaid:totalPaid,
+    productId:prodPO?prodPO.productId:null,qty:prodPO?prodPO.qty:1,
+    variantIdx:prodPO?prodPO.variantIdx||0:0,
+    size:prodPO?prodPO.size:'',colour:prodPO?prodPO.colour:'',
+    assembled:pos.some(function(po){return po.assembled;})};
+}
+
+function openAssembleModal(groupId){
+  var status=getBOMGroupStatus(groupId);
+  if(!status){alert('Assembly group not found.');return;}
+  if(status.assembled){alert('This batch has already been assembled.');return;}
+  if(!status.allReceived){
+    var notRcvd=status.pos.filter(function(po){return po.status!=='received'&&!po.assembled;});
+    alert('Not all components received yet. Pending: '+notRcvd.map(function(p){return p.desc;}).join(', '));;
+    return;
+  }
+  document.getElementById('asm-group-id').value=groupId;
+  document.getElementById('asm-date').value=nd();
+  document.getElementById('asm-notes').value='';
+  document.getElementById('asm-qty').value=status.qty||1;
+  var prod=status.productId?D.products.find(function(p){return p.id===status.productId;}):null;
+  var groupName=status.pos[0]&&status.pos[0].assemblyGroupName||'Assembly';
+  var sumHtml='<div style="font-weight:700;margin-bottom:6px">'+groupName+'</div>'
+    +(prod?'<div style="color:var(--gold);margin-bottom:4px">Finished product: '+prod.name+(status.size?' &bull; '+status.size:'')+(status.colour?' &bull; '+status.colour:'')+'</div>':'')
+    +'<div style="font-size:11px;color:var(--muted);margin-bottom:4px">Component POs:</div>'
+    +status.pos.map(function(po){
+      return'<div style="display:flex;justify-content:space-between;padding:2px 0;font-size:11px">'
+        +'<span>'+po.desc+(po.supplier?' ('+po.supplier+')':'')+'</span>'
+        +'<span style="color:var(--grn)">'+thb(po.total||0)+'</span></div>';
+    }).join('')
+    +'<div style="display:flex;justify-content:space-between;padding:4px 0;margin-top:4px;border-top:1px solid var(--bd);font-weight:700">'
+    +'<span>Total Batch Cost</span><span>'+thb(status.totalCost)+'</span></div>'
+    +(status.qty?'<div style="font-size:11px;color:var(--muted);margin-top:2px">Cost per unit: '+thb(Math.round(status.totalCost/(status.qty||1)))+'</div>':'');
+  document.getElementById('asm-summary').innerHTML=sumHtml;
+  openM('mo-assemble');
+}
+
+function confirmAssemble(){
+  var groupId=document.getElementById('asm-group-id').value;
+  var status=getBOMGroupStatus(groupId);
+  if(!status)return;
+  var qty=parseInt(document.getElementById('asm-qty').value)||0;
+  if(qty<=0){alert('Please enter quantity.');return;}
+  if(!status.productId){alert('No finished product linked to this assembly group.');return;}
+  var p=D.products.find(function(x){return x.id===status.productId;});
+  if(!p){alert('Product not found.');return;}
+  var vi=status.variantIdx||0;var v=p.variants&&(p.variants[vi]||p.variants[0]);if(!v){alert('Product has no variants.');return;}
+  var col=status.colour||stockCol(p,'');
+  adjStock(p.id,v.id,status.size||null,col,qty,'ordered');
+  (D.purchaseOrders||[]).forEach(function(po){
+    if(po.assemblyGroup===groupId){po.assembled=true;po.assembledQty=qty;po.assembledDate=document.getElementById('asm-date').value;}
+  });
+  var groupName=status.pos[0]&&status.pos[0].assemblyGroupName||'Assembly';
+  var batchCost=status.totalCost;
+  var costPerUnit=Math.round(batchCost/(qty||1));
+  audit('BOM_ASSEMBLE','Assembled '+qty+' x '+p.name+' | Group: '+groupName+' | Batch: '+thb(batchCost)+' | Per unit: '+thb(costPerUnit));
+  save();closeM('mo-assemble');renderAll();
+  alert('Assembly complete!\n'+qty+' x '+p.name+' added to stock.\nBatch cost: '+thb(batchCost)+'\nCost per unit: '+thb(costPerUnit));
+}
+
+function rStockValue(){
+  if(!CU)return'';
+  var rows=[];
+  var grandTotal=0;
+  var grandUnits=0;
+  D.products.filter(function(p){return!p.archived;}).forEach(function(p){
+    var prodTotal=0;var prodUnits=0;
+    p.variants.forEach(function(v){
+      var prodCost=parseFloat(v.production||0);
+      if(prodCost<=0)return; // skip if no production cost set
+      var cols=prodColours(p);
+      var szs=p.hasSizes?(p.sizes||SIZES):[''];
+      szs.forEach(function(sz){
+        cols.forEach(function(c){
+          var qty=getStock(p.id,v.id,sz||null,c.name||'');
+          if(qty<=0)return;
+          var val=qty*prodCost;
+          prodTotal+=val;prodUnits+=qty;
+          rows.push({
+            product:p.name,
+            variant:v.name,
+            size:sz,
+            colour:c.name,
+            qty:qty,
+            cost:prodCost,
+            value:val
+          });
+        });
+      });
+    });
+    grandTotal+=prodTotal;grandUnits+=prodUnits;
+  });
+
+  if(!rows.length)return'<div class="empty"><div class="ei">&#128085;&#65039;</div>No stock with production costs set</div>';
+
+  var html='<div style="display:flex;gap:16px;margin-bottom:14px">'
+    +'<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Total Units</div>'
+    +'<div style="font-size:22px;font-weight:700;color:var(--gold)">'+grandUnits+'</div></div>'
+    +'<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Total Stock Value</div>'
+    +'<div style="font-size:22px;font-weight:700;color:var(--rl)">'+thb(grandTotal)+'</div></div>'
+    +'</div>'
+    +'<div style="font-size:10px;color:var(--dim);margin-bottom:10px">Stock on hand valued at production cost. Excludes products with no production cost set.</div>';
+
+  // Group by product
+  var byProduct={};
+  rows.forEach(function(r){
+    if(!byProduct[r.product])byProduct[r.product]={rows:[],total:0,units:0};
+    byProduct[r.product].rows.push(r);
+    byProduct[r.product].total+=r.value;
+    byProduct[r.product].units+=r.qty;
+  });
+
+  Object.keys(byProduct).forEach(function(pName){
+    var pg=byProduct[pName];
+    html+='<div class="balbar">'
+      +'<h3>&#128085;&#65039; '+pName+' &mdash; '+pg.units+' units &mdash; '+thb(pg.total)+'</h3>';
+    pg.rows.forEach(function(r){
+      html+='<div class="brow"><span class="blbl">'+r.variant
+        +(r.size?' &bull; '+r.size:'')
+        +(r.colour?' &bull; '+r.colour:'')
+        +'</span>'
+        +'<span style="font-size:11px;color:var(--muted)">'+r.qty+' &times; '+thb(r.cost)+'</span>'
+        +'<span style="font-weight:600">'+thb(r.value)+'</span></div>';
+    });
+    html+='</div>';
+  });
+
+  // Stock value section
+  html+='<div class="balbar"><h3>&#128181; STOCK VALUE AT COST</h3>';
+  var svTotal=0;var svRows=[];
+  D.products.filter(function(p){return!p.archived;}).forEach(function(p){
+    p.variants.forEach(function(v){
+      var prodCost=parseFloat(v.production||0);if(!prodCost)return;
+      var cols=prodColours(p);var szs=p.hasSizes?(p.sizes||SIZES):[null];
+      szs.forEach(function(sz){cols.forEach(function(c){
+        var qty=getStock(p.id,v.id,sz||null,c.name||'');
+        if(qty>0){
+          var val=qty*prodCost;svTotal+=val;
+          svRows.push('<div class="brow"><span class="blbl">'+p.name+' '+v.name+(sz?' '+sz:'')+(c.name?' '+c.name:'')+'</span>'
+            +'<span style="font-size:11px;color:var(--muted)">'+qty+' &times; '+thb(prodCost)+'</span>'
+            +'<span style="font-weight:600">'+thb(val)+'</span></div>');
+        }
+      });});
+    });
+  });
+  if(svRows.length){html+=svRows.join('');}
+  else{html+='<div style="font-size:12px;color:var(--dim);padding:4px 0">No stock with production costs set</div>';}
+  html+='<div class="brow" style="font-weight:700"><span class="blbl">Total Stock Value at Cost</span>'
+    +'<span style="font-weight:700;color:var(--rl)">'+thb(svTotal)+'</span></div>';
+  html+='</div>';
+
+  return html;
 }
 
 loadSettings();
