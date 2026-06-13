@@ -1,0 +1,25 @@
+{
+  "name": "Road Eagles MC Thailand",
+  "short_name": "Road Eagles",
+  "description": "Road Eagles MC Thailand Club Management App",
+  "start_url": "./road-eagles-mc.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#c9a227",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "./icon-512.png",
+      "sizes": "480x480",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "480x480",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
