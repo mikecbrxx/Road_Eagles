@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.28</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.29</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -623,6 +623,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     </div>
     <div class="fg"><label>Description</label><input type="text" id="txe-desc" placeholder="What is this for?"></div>
     <div class="fg"><label>Notes</label><textarea id="txe-notes" style="height:50px"></textarea></div>
+    <div class="fg"><label>Event (optional)</label><select id="txe-ev"></select></div>
     <div class="fg">
       <label>Payment Status</label>
       <div class="tg"><button class="tgb tin" id="txe-pay-paid" onclick="selTxePay('paid')">&#128176; Paid</button><button class="tgb" id="txe-pay-unpaid" onclick="selTxePay('unpaid')">&#128203; Committed</button></div>
@@ -3044,12 +3045,20 @@ function openTxEdit(id){
   const catSel=document.getElementById('txe-cat');
   if(catSel&&tx.category){const opt=[...catSel.options].find(o=>o.value===tx.category);if(opt)catSel.value=tx.category;}
   selTxePay(tx.paid!==false?'paid':'unpaid');
+  // Populate event select
+  var txeEv=document.getElementById('txe-ev');
+  if(txeEv){
+    txeEv.innerHTML='<option value="">&#8212; No Event &#8212;</option>'
+      +(D.events||[]).map(function(e){
+        return '<option value="'+e.id+'"'+(tx.eventId===e.id?' selected':'')+'>'+e.name+'</option>';
+      }).join('');
+  }
   openM('mo-tx-edit');
 }
 function saveTxEdit(){
   const id=document.getElementById('txe-id').value;
   const tx=D.transactions.find(t=>t.id===id);if(!tx)return;
-  const before={amount:tx.amount,description:tx.description,paid:tx.paid};
+  const before={amount:tx.amount,description:tx.description,paid:tx.paid,eventId:tx.eventId||''};
   tx.amount=parseFloat(document.getElementById('txe-amt').value)||0;
   tx.date=document.getElementById('txe-date').value;
   tx.description=document.getElementById('txe-desc').value.trim();
@@ -3057,7 +3066,9 @@ function saveTxEdit(){
   tx.direction=_txeDir;tx.account=_txeAcc;
   tx.category=document.getElementById('txe-cat').value;
   tx.paid=document.getElementById('txe-pay-paid').className.includes('tin');
-  audit('TRANSACTION_EDIT','Edited: '+tx.description+' '+thb(tx.amount),before,{amount:tx.amount,paid:tx.paid});
+  var txeEvSel=document.getElementById('txe-ev');
+  tx.eventId=txeEvSel?txeEvSel.value||'':'';
+  audit('TRANSACTION_EDIT','Edited: '+tx.description+' '+thb(tx.amount),before,{amount:tx.amount,paid:tx.paid,eventId:tx.eventId||''});
   save();closeM('mo-tx-edit');renderAll();
 }
 function deleteTxEdit(){
