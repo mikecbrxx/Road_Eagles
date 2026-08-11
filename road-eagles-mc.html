@@ -244,6 +244,26 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
         <div class="scard"><div class="slbl">&#128203; Tabs Owed</div><div class="sval r" id="db-tabs">0</div></div>
         <div class="scard"><div class="slbl">Tab Net Position</div><div class="sval r" id="db-tabamt">&#3647;0</div></div>
       </div>
+      <div class="sh"><div class="stitle">&#127881; Event Overview</div></div>
+      <div style="margin-bottom:8px">
+        <select id="db-ev-sel" onchange="renderDashEvent()" style="width:100%;background:var(--sf);border:1px solid var(--bd);color:var(--txt);padding:8px 12px;border-radius:10px;font-size:13px">
+          <option value="">— Select an event —</option>
+        </select>
+      </div>
+      <div id="db-ev-block" style="display:none;margin-bottom:4px">
+        <div class="sgrid" style="margin-bottom:6px">
+          <div class="scard"><div class="slbl">Income Received</div><div class="sval g" id="db-ev-inc-paid">฿0</div></div>
+          <div class="scard"><div class="slbl">Income Pending</div><div class="sval" style="color:var(--warn)" id="db-ev-inc-un">฿0</div></div>
+          <div class="scard"><div class="slbl">Expenses Paid</div><div class="sval r" id="db-ev-exp-paid">฿0</div></div>
+          <div class="scard"><div class="slbl">Expenses Pending</div><div class="sval" style="color:var(--warn)" id="db-ev-exp-un">฿0</div></div>
+        </div>
+        <div class="sgrid" style="margin-bottom:6px">
+          <div class="scard"><div class="dlbl">Net Actual</div><div class="sval" id="db-ev-net-act">฿0</div></div>
+          <div class="scard"><div class="dlbl">Net Projected</div><div class="sval" id="db-ev-net-proj">฿0</div></div>
+        </div>
+        <button class="btn btn-out" onclick="dashEventReport()" style="font-size:12px;padding:8px;margin-bottom:6px">&#128196; View Full Event Report</button>
+      </div>
+      <div id="db-ev-none" style="font-size:12px;color:var(--dim);text-align:center;padding:6px 0;margin-bottom:8px">Select an event above to see its financial summary</div>
       <div class="sh"><div class="stitle">Recent Entries</div></div>
       <div id="db-tx"><div class="empty"><div class="ei">&#128203;</div>No transactions yet</div></div>
     </div>
@@ -395,26 +415,6 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       <button class="rb" onclick="goTo('suppliers')"   style="margin-bottom:6px"><span class="rbi">&#128230;</span><div><div class="fml">Suppliers</div><div class="fms">View, add and edit suppliers</div></div></button>
       <button class="rb" onclick="goTo('products')" style="margin-bottom:6px"><span class="rbi">&#128085;&#65039;</span><div><div class="fml">Products</div><div class="fms">Manage products and variants</div></div></button>
       <button class="rb" onclick="goTo('events')" style="margin-bottom:10px"><span class="rbi">&#127881;</span><div><div class="fml">Events &amp; Rides</div><div class="fms">View, add and edit all events</div></div></button>
-      <div class="stitle" style="margin-top:14px;margin-bottom:8px">Event Overview</div>
-      <div style="margin-bottom:8px;padding:0 2px">
-        <select id="db-ev-sel" onchange="renderDashEvent()" style="width:100%;background:var(--sf);border:1px solid var(--bd);color:var(--txt);padding:8px 12px;border-radius:10px;font-size:13px">
-          <option value="">— Select an event —</option>
-        </select>
-      </div>
-      <div id="db-ev-block" style="display:none">
-        <div class="sgrid" style="margin-bottom:8px">
-          <div class="scard"><div class="slbl">Income Received</div><div class="sval g" id="db-ev-inc-paid">฿0</div></div>
-          <div class="scard"><div class="slbl">Income Pending</div><div class="sval" style="color:var(--warn)" id="db-ev-inc-un">฿0</div></div>
-          <div class="scard"><div class="slbl">Expenses Paid</div><div class="sval r" id="db-ev-exp-paid">฿0</div></div>
-          <div class="scard"><div class="slbl">Expenses Pending</div><div class="sval" style="color:var(--warn)" id="db-ev-exp-un">฿0</div></div>
-        </div>
-        <div class="sgrid" style="margin-bottom:8px">
-          <div class="scard"><div class="dlbl">Net Actual</div><div class="sval" id="db-ev-net-act">฿0</div></div>
-          <div class="scard"><div class="dlbl">Net Projected</div><div class="sval" id="db-ev-net-proj">฿0</div></div>
-        </div>
-        <button class="btn btn-out" onclick="dashEventReport()" style="font-size:12px;padding:8px;margin-bottom:4px">&#128196; View Full Event Report</button>
-      </div>
-      <div id="db-ev-none" style="font-size:12px;color:var(--dim);text-align:center;padding:8px 0;margin-bottom:8px">Select an event above to see its financial summary</div>
       <div class="stitle" style="margin-bottom:12px">Reports</div>
       <button class="rb" onclick="showReport('event')"><span class="rbi">&#127881;</span><div><div class="fml">Event Report</div><div class="fms">Full income &amp; expense for a single event</div></div></button>
       <button class="rb" onclick="showReport('monthly')"><span class="rbi">&#128197;</span><div><div class="fml">Monthly Statement</div><div class="fms">Income &amp; expenses, both accounts</div></div></button>
@@ -1454,17 +1454,21 @@ function renderDashEvent(){
 }
 
 function dashEventReport(){
-  // Navigate to event report pre-selected to current event
   var sel=document.getElementById('db-ev-sel');
   var evId=sel?sel.value:'';
+  // Go to More, show event report, then pre-select the event
   goTo('more');
-  setTimeout(function(){
-    showReport('event');
-    setTimeout(function(){
+  showReport('event');
+  // Give the report DOM a moment to render then select the event
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
       var revSel=document.getElementById('rev-sel');
-      if(revSel&&evId){revSel.value=evId;renderEventReport();}
-    },100);
-  },50);
+      if(revSel&&evId){
+        revSel.value=evId;
+        renderEventReport();
+      }
+    });
+  });
 }
 
 function calcBal(){let ci=D.openingClub,co=0,hi=D.openingCharity,ho=0;D.transactions.filter(t=>t.paid!==false).forEach(t=>{const a=parseFloat(t.amount)||0;if(t.account==='club'){t.direction==='in'?ci+=a:co+=a;}else{t.direction==='in'?hi+=a:ho+=a;}});return{club:ci-co,charity:hi-ho};}
