@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.29</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.31</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -396,6 +396,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       <button class="rb" onclick="goTo('products')" style="margin-bottom:6px"><span class="rbi">&#128085;&#65039;</span><div><div class="fml">Products</div><div class="fms">Manage products and variants</div></div></button>
       <button class="rb" onclick="goTo('events')" style="margin-bottom:10px"><span class="rbi">&#127881;</span><div><div class="fml">Events &amp; Rides</div><div class="fms">View, add and edit all events</div></div></button>
       <div class="stitle" style="margin-bottom:12px">Reports</div>
+      <button class="rb" onclick="showReport('event')"><span class="rbi">&#127881;</span><div><div class="fml">Event Report</div><div class="fms">Full income &amp; expense for a single event</div></div></button>
       <button class="rb" onclick="showReport('monthly')"><span class="rbi">&#128197;</span><div><div class="fml">Monthly Statement</div><div class="fms">Income &amp; expenses, both accounts</div></div></button>
       <button class="rb" onclick="showReport('annual')"><span class="rbi">&#128198;</span><div><div class="fml">Annual Summary</div><div class="fms">Full year, Club &amp; Charity</div></div></button>
       <button class="rb" onclick="showReport('membership')"><span class="rbi">&#128101;</span><div><div class="fml">Membership Report</div><div class="fms">Paid / unpaid / prospects / fees</div></div></button>
@@ -560,6 +561,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     <label id="sale-member-lbl">Member / Officer</label>
     <select id="sale-tab-member"><option value="">— Walk-in / Visitor —</option></select>
   </div>
+  <div class="fg"><label>Event (optional)</label><select id="sale-ev"><option value="">&#8212; No Event &#8212;</option></select></div>
   <button class="btn btn-gold" onclick="saveSale()">Record Sale</button>
 </div></div>
 
@@ -575,6 +577,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="fg"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Total Cost</div><div style="font-size:20px;font-weight:700;color:var(--gold)" id="ord-total">&#3647;0</div></div>
   <div class="fg irow"><div><label>Supplier</label><input type="text" id="ord-sup" list="ord-sup-dl"><datalist id="ord-sup-dl"></datalist></div><div><label>Date</label><input type="date" id="ord-date"></div></div>
   <div class="fg irow"><div><label>Ref / Invoice #</label><input type="text" id="ord-ref" placeholder="Order/invoice number"></div><div><label>Notes</label><input type="text" id="ord-notes" placeholder="Optional"></div></div>
+  <div class="fg"><label>Event (optional)</label><select id="ord-ev"><option value="">&#8212; No Event &#8212;</option></select></div>
   <button class="btn btn-gold" onclick="saveOrder()">Save Order &amp; Update Stock</button>
 </div></div>
 
@@ -705,6 +708,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     </div>
     <div class="fg"><label>Ref / Receipt #</label><input type="text" id="pop-ref" placeholder="Optional"></div>
     <div class="fg"><label>Payment Type / Notes</label><select id="pop-notes-sel" onchange="this.nextElementSibling.value=this.value;this.value=''" style="margin-bottom:4px"><option value="">Select type...</option><option value="Deposit">Deposit</option><option value="Part payment">Part payment</option><option value="Final payment">Final payment</option><option value="Full payment">Full payment</option></select><input type="text" id="pop-notes" placeholder="or type your own description"></div>
+    <div class="fg"><label>Event (optional)</label><select id="pop-ev"><option value="">&#8212; No Event &#8212;</option></select></div>
     <button class="btn btn-gold" onclick="savePOPayment()" style="width:100%;margin-top:4px">Record Payment</button>
   </div>
 </div>
@@ -1839,7 +1843,7 @@ function selTxPay(v){
   const rg=document.getElementById('tx-resp-g');
   if(rg)rg.style.display=v==='unpaid'?'':'none';
 }
-function openSaleModal(){closeM('mo-fab');_cu='member';selCust('member');selPayment('paid');document.getElementById('sale-date').value=nd();document.getElementById('sale-qty').value=1;document.getElementById('sale-notes').value='';document.getElementById('sale-stock-info').style.display='none';const cs=document.getElementById('sale-colour');cs.innerHTML=D.colours.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');const bk=[...cs.options].find(o=>o.value==='Black');if(bk)cs.value='Black';document.getElementById('sale-prod').innerHTML=D.products.filter(p=>!p.archived).sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${p.id}">${p.name}</option>`).join('');// populate member list for tab
+function openSaleModal(){closeM('mo-fab');_cu='member';selCust('member');selPayment('paid');document.getElementById('sale-date').value=nd();document.getElementById('sale-qty').value=1;document.getElementById('sale-notes').value='';document.getElementById('sale-stock-info').style.display='none';populateEvSel('sale-ev','');const cs=document.getElementById('sale-colour');cs.innerHTML=D.colours.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');const bk=[...cs.options].find(o=>o.value==='Black');if(bk)cs.value='Black';document.getElementById('sale-prod').innerHTML=D.products.filter(p=>!p.archived).sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${p.id}">${p.name}</option>`).join('');// populate member list for tab
 const memSel=document.getElementById('sale-tab-member');memSel.innerHTML=D.members.filter(m=>m.status!=='prospect'&&m.status!=='inactive').map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
 updateSaleVars();openM('mo-sale');}
 let _payMode='paid';
@@ -1894,20 +1898,22 @@ function saveSale(){
     const memberId=selMemId;
     const member=selMem;
     if(!D.tabs)D.tabs=[];
-    D.tabs.push({id:uid(),memberId,memberName:member?member.name:'Unknown',description:desc,amount:pr*qty,date:saleDate,created:ni(),enteredBy:CU.name,settled:false,settledDate:null,settledNotes:'',productId:p.id,variantId:v.id,qty,unitPrice:pr,customerType:_cu,colour:col,size:sz,notes});
+    D.tabs.push({eventId:saleEvId,id:uid(),memberId,memberName:member?member.name:'Unknown',description:desc,amount:pr*qty,date:saleDate,created:ni(),enteredBy:CU.name,settled:false,settledDate:null,settledNotes:'',productId:p.id,variantId:v.id,qty,unitPrice:pr,customerType:_cu,colour:col,size:sz,notes});
   } else {
-    D.transactions.push({id:uid(),account:'club',direction:'in',category:'merchandise',amount:pr*qty,description:desc,supplier:'',ref:'',date:saleDate,created:ni(),notes,enteredBy:CU.name,productId:p.id,variantId:v.id,qty,unitPrice:pr,customerType:_cu,colour:col,size:sz});
+    var saleEvId=document.getElementById('sale-ev')?document.getElementById('sale-ev').value||'':'';
+  D.transactions.push({id:uid(),account:'club',direction:'in',category:'merchandise',amount:pr*qty,description:desc,supplier:'',ref:'',date:saleDate,created:ni(),notes,enteredBy:CU.name,productId:p.id,variantId:v.id,qty,unitPrice:pr,customerType:_cu,colour:col,size:sz,eventId:saleEvId});
   }
   save();closeM('mo-sale');renderAll();
 }
 
 // Order Modal
-function openOrderModal(){closeM('mo-fab');document.getElementById('ord-date').value=nd();['ord-ref','ord-notes','ord-sup'].forEach(id=>document.getElementById(id).value='');document.getElementById('ord-qty').value=1;document.getElementById('ord-total').innerHTML='&#3647;0';const cs=document.getElementById('ord-colour');cs.innerHTML=D.colours.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');const bk=[...cs.options].find(o=>o.value==='Black');if(bk)cs.value='Black';document.getElementById('ord-sup-dl').innerHTML=[...D.suppliers].sort(function(a,b){return(a.name||'').localeCompare(b.name||'');}).map(function(s){return'<option value="'+(s.name||s)+'">';}).join('');document.getElementById('ord-prod').innerHTML=D.products.filter(p=>!p.archived).sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${p.id}">${p.name}</option>`).join('');updateOrdVars();openM('mo-order');}
+function openOrderModal(){closeM('mo-fab');document.getElementById('ord-date').value=nd();['ord-ref','ord-notes','ord-sup'].forEach(id=>document.getElementById(id).value='');document.getElementById('ord-qty').value=1;document.getElementById('ord-total').innerHTML='&#3647;0';const cs=document.getElementById('ord-colour');cs.innerHTML=D.colours.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');const bk=[...cs.options].find(o=>o.value==='Black');if(bk)cs.value='Black';document.getElementById('ord-sup-dl').innerHTML=[...D.suppliers].sort(function(a,b){return(a.name||'').localeCompare(b.name||'');}).map(function(s){return'<option value="'+(s.name||s)+'">';}).join('');document.getElementById('ord-prod').innerHTML=D.products.filter(p=>!p.archived).sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${p.id}">${p.name}</option>`).join('');updateOrdVars();populateEvSel('ord-ev','');openM('mo-order');}
 function updateOrdVars(){const p=D.products.find(x=>x.id===document.getElementById('ord-prod').value);if(!p)return;document.getElementById('ord-var').innerHTML=p.variants.map((v,i)=>`<option value="${i}">${v.name}</option>`).join('');updateOrdVarChange();}
 function updateOrdVarChange(){const p=D.products.find(x=>x.id===document.getElementById('ord-prod').value);if(!p)return;document.getElementById('ord-sz-g').style.display=p.hasSizes?'':'none';if(p.hasSizes)document.getElementById('ord-size').innerHTML=SIZES.map(s=>`<option>${s}</option>`).join('');const vi=parseInt(document.getElementById('ord-var').value)||0;const v=p.variants[vi];if(v)document.getElementById('ord-cost').value=v.production||0;const ordColRow=document.getElementById('ord-colour-row');if(ordColRow)ordColRow.style.display=isSingleColour(p)?'none':'';
   if(!isSingleColour(p)){const ocs=document.getElementById('ord-colour');if(ocs)ocs.innerHTML=(p.colours||[]).map(function(cn){return'<option value="'+cn+'">'+cn+'</option>';}).join('');}updOrdTotal();}
 function updOrdTotal(){document.getElementById('ord-total').innerHTML=thb((parseInt(document.getElementById('ord-qty').value)||0)*(parseFloat(document.getElementById('ord-cost').value)||0));}
-function saveOrder(){const p=D.products.find(x=>x.id===document.getElementById('ord-prod').value);if(!p){alert('Select a product');return;}const vi=parseInt(document.getElementById('ord-var').value)||0;const v=p.variants[vi];const qty=parseInt(document.getElementById('ord-qty').value)||0;if(qty<=0){alert('Quantity must be at least 1');return;}const cost=parseFloat(document.getElementById('ord-cost').value)||0;const sz=p.hasSizes?document.getElementById('ord-size').value:null;const rawOrdCol=document.getElementById('ord-colour').value;const col=stockCol(p,rawOrdCol);const sup=document.getElementById('ord-sup').value.trim();if(sup&&!D.suppliers.find(function(x){return(x.name||x)===sup;}))D.suppliers.push({id:uid(),name:sup,phone:'',email:'',website:'',contact:'',address:''});adjStock(p.id,v.id,sz,col,qty,'ordered');D.transactions.push({id:uid(),account:'club',direction:'out',category:'stock_order',amount:cost*qty,description:'Stock order: '+p.name+' – '+v.name+(sz?' ('+sz+')':'')+(col?', '+col:'')+' ×'+qty,supplier:sup,ref:document.getElementById('ord-ref').value.trim(),date:document.getElementById('ord-date').value,created:ni(),notes:document.getElementById('ord-notes').value.trim(),enteredBy:CU.name,productId:p.id,variantId:v.id,qty,unitCost:cost,colour:col,size:sz});save();closeM('mo-order');renderAll();}
+function saveOrder(){const p=D.products.find(x=>x.id===document.getElementById('ord-prod').value);if(!p){alert('Select a product');return;}const vi=parseInt(document.getElementById('ord-var').value)||0;const v=p.variants[vi];const qty=parseInt(document.getElementById('ord-qty').value)||0;if(qty<=0){alert('Quantity must be at least 1');return;}const cost=parseFloat(document.getElementById('ord-cost').value)||0;const sz=p.hasSizes?document.getElementById('ord-size').value:null;const rawOrdCol=document.getElementById('ord-colour').value;const col=stockCol(p,rawOrdCol);const sup=document.getElementById('ord-sup').value.trim();if(sup&&!D.suppliers.find(function(x){return(x.name||x)===sup;}))D.suppliers.push({id:uid(),name:sup,phone:'',email:'',website:'',contact:'',address:''});adjStock(p.id,v.id,sz,col,qty,'ordered');var ordEvId=document.getElementById('ord-ev')?document.getElementById('ord-ev').value||'':'';
+  D.transactions.push({id:uid(),account:'club',direction:'out',category:'stock_order',eventId:ordEvId,amount:cost*qty,description:'Stock order: '+p.name+' – '+v.name+(sz?' ('+sz+')':'')+(col?', '+col:'')+' ×'+qty,supplier:sup,ref:document.getElementById('ord-ref').value.trim(),date:document.getElementById('ord-date').value,created:ni(),notes:document.getElementById('ord-notes').value.trim(),enteredBy:CU.name,productId:p.id,variantId:v.id,qty,unitCost:cost,colour:col,size:sz});save();closeM('mo-order');renderAll();}
 
 // Member Modal
 function openMemberModal(){closeM('mo-fab');
@@ -2172,9 +2178,9 @@ function delSup(sid){var idx=D.suppliers.findIndex(function(x){return x.id===sid
 
 // Reports
 function showReport(type){
-  const T={monthly:'&#128197; Monthly Statement',meeting:'&#128101; Club Meeting Report',annual:'&#128198; Annual Summary',membership:'&#128101; Membership Report',merchandise:'&#128717;&#65039; Merchandise Sales',stock:'&#128230; Stock Report',tabs:'&#128203; Tab Debts Report',donations:'&#129309; Donation Report',suppliers:'&#127978;&#65039; Purchase Ledger',cogs:'&#128208; Cost of Goods',analysis:'&#128202; Analysis Report',audit:'&#128269; Audit Trail'};
+  const T={event:'&#127881; Event Report',monthly:'&#128197; Monthly Statement',meeting:'&#128101; Club Meeting Report',annual:'&#128198; Annual Summary',membership:'&#128101; Membership Report',merchandise:'&#128717;&#65039; Merchandise Sales',stock:'&#128230; Stock Report',tabs:'&#128203; Tab Debts Report',donations:'&#129309; Donation Report',suppliers:'&#127978;&#65039; Purchase Ledger',cogs:'&#128208; Cost of Goods',analysis:'&#128202; Analysis Report',audit:'&#128269; Audit Trail'};
   document.getElementById('rpt-t').innerHTML=T[type]||'Report';
-  const fn={monthly:rMonth,meeting:rMeeting,annual:rAnnual,membership:rMem,merchandise:rMerch,stock:rStock,tabs:rTabs,donations:rDon,suppliers:rSup,cogs:rCOGS,analysis:rAnalysis,audit:rAudit,stockvalue:rStockValue};
+  const fn={event:rEvent,monthly:rMonth,meeting:rMeeting,annual:rAnnual,membership:rMem,merchandise:rMerch,stock:rStock,tabs:rTabs,donations:rDon,suppliers:rSup,cogs:rCOGS,analysis:rAnalysis,audit:rAudit,stockvalue:rStockValue};
   document.getElementById('rpt-b').innerHTML=(fn[type]||rMonth)();
   var pdfBtn=document.getElementById('rpt-pdf-btn');
   if(pdfBtn)pdfBtn.style.display='';
@@ -2183,6 +2189,161 @@ function showReport(type){
 function br(l,v,c){return`<div class="brow"><span class="blbl">${l}</span><span style="font-size:15px;font-weight:700;color:${c||'var(--gl)'};">${v}</span></div>`;}
 function sumio(txs){const i=txs.filter(t=>t.direction==='in').reduce((a,t)=>a+parseFloat(t.amount||0),0),o=txs.filter(t=>t.direction==='out').reduce((a,t)=>a+parseFloat(t.amount||0),0);return{i,o,n:i-o};}
 function catBd(txs){const c={};txs.forEach(t=>{const a=(t.direction==='in'?1:-1)*(parseFloat(t.amount)||0);c[t.category]=(c[t.category]||0)+a;});return Object.entries(c).map(([k,v])=>br(CM[k]||k,thb(Math.abs(v)),v>=0?'var(--grnl)':'var(--rl)')).join('');}
+function populateEvSel(selId, selectedId){
+  var el=document.getElementById(selId);
+  if(!el)return;
+  el.innerHTML='<option value="">&#8212; No Event &#8212;</option>'
+    +(D.events||[]).map(function(e){
+      return '<option value="'+e.id+'"'+(selectedId&&selectedId===e.id?' selected':'')+'>'+e.name+'</option>';
+    }).join('');
+}
+
+function rEvent(){
+  // Build event selector
+  if(!D.events||!D.events.length){
+    return '<div style="padding:20px;text-align:center;color:var(--muted)">No events found. Add events first.</div>';
+  }
+  var evOpts=D.events.map(function(e){
+    return '<option value="'+e.id+'">'+e.name+'</option>';
+  }).join('');
+  setTimeout(renderEventReport,50);
+  return '<div class="fg" style="margin-bottom:12px">'
+    +'<label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Select Event</label>'
+    +'<select id="rev-sel" onchange="renderEventReport()" style="width:100%">'+evOpts+'</select>'
+    +'</div>'
+    +'<div id="rev-body"></div>';
+}
+
+function renderEventReport(){
+  var el=document.getElementById('rev-body');if(!el)return;
+  var sel=document.getElementById('rev-sel');if(!sel)return;
+  var evId=sel.value;
+  var ev=D.events.find(function(e){return e.id===evId;});
+  if(!ev){el.innerHTML='';return;}
+
+  // Get all transactions for this event, sorted by date
+  var allTx=D.transactions.filter(function(t){return t.eventId===evId;})
+    .sort(function(a,b){return (a.date||a.created||'').localeCompare(b.date||b.created||'');});
+
+  // Split income/expense, paid/unpaid
+  var incPaid=allTx.filter(function(t){return t.direction==='in'&&t.paid!==false;});
+  var incUnpaid=allTx.filter(function(t){return t.direction==='in'&&t.paid===false;});
+  var expPaid=allTx.filter(function(t){return t.direction==='out'&&t.paid!==false;});
+  var expUnpaid=allTx.filter(function(t){return t.direction==='out'&&t.paid===false;});
+
+  var totIncPaid=incPaid.reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var totIncUnpaid=incUnpaid.reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var totExpPaid=expPaid.reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var totExpUnpaid=expUnpaid.reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var totInc=totIncPaid+totIncUnpaid;
+  var totExp=totExpPaid+totExpUnpaid;
+  var netActual=(totIncPaid-totExpPaid);
+  var netAll=totInc-totExp;
+
+  // Row helper for itemised list
+  function txRow(t,dir){
+    var d=t.date||t.created||'';
+    var dateStr=d?new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'—';
+    var paidStr=t.paid===false
+      ?'<span style="color:var(--warn);font-size:10px">Unpaid</span>'
+      :'<span style="color:var(--grnl);font-size:10px">Paid</span>';
+    var col=dir==='in'?'var(--grnl)':'var(--rl)';
+    return '<tr>'
+      +'<td style="padding:5px 6px;border-bottom:1px solid var(--bd);font-size:11px;color:var(--muted)">'+dateStr+'</td>'
+      +'<td style="padding:5px 6px;border-bottom:1px solid var(--bd);font-size:12px">'+htmlEsc(t.description||'')+'</td>'
+      +'<td style="padding:5px 6px;border-bottom:1px solid var(--bd);font-size:11px;color:var(--muted)">'+htmlEsc(t.category||'')+'</td>'
+      +'<td style="padding:5px 6px;border-bottom:1px solid var(--bd);font-size:11px;text-align:center">'+paidStr+'</td>'
+      +'<td style="padding:5px 6px;border-bottom:1px solid var(--bd);font-size:12px;font-weight:700;text-align:right;color:'+col+'">'+thb(t.amount)+'</td>'
+      +'</tr>';
+  }
+
+  function txTable(txs,dir){
+    if(!txs.length)return '<div style="font-size:12px;color:var(--dim);padding:6px 0">None</div>';
+    return '<table style="width:100%;border-collapse:collapse">'
+      +'<thead><tr>'
+      +'<th style="font-size:10px;color:var(--muted);text-align:left;padding:4px 6px;border-bottom:2px solid var(--bd)">Date</th>'
+      +'<th style="font-size:10px;color:var(--muted);text-align:left;padding:4px 6px;border-bottom:2px solid var(--bd)">Description</th>'
+      +'<th style="font-size:10px;color:var(--muted);text-align:left;padding:4px 6px;border-bottom:2px solid var(--bd)">Category</th>'
+      +'<th style="font-size:10px;color:var(--muted);text-align:center;padding:4px 6px;border-bottom:2px solid var(--bd)">Status</th>'
+      +'<th style="font-size:10px;color:var(--muted);text-align:right;padding:4px 6px;border-bottom:2px solid var(--bd)">Amount</th>'
+      +'</tr></thead>'
+      +'<tbody>'+txs.map(function(t){return txRow(t,dir);}).join('')+'</tbody>'
+      +'</table>';
+  }
+
+  // Build HTML
+  var h='';
+
+  // Event header
+  h+='<div class="balbar" style="background:var(--sf2);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:10px">'
+    +'<div style="font-size:16px;font-weight:800;color:var(--gl);margin-bottom:4px">'+htmlEsc(ev.name)+'</div>'
+    +(ev.date?'<div style="font-size:11px;color:var(--muted)">&#128197; '+new Date(ev.date).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})+'</div>':'')
+    +(ev.description?'<div style="font-size:11px;color:var(--muted);margin-top:3px">'+htmlEsc(ev.description)+'</div>':'')
+    +'<div style="font-size:10px;color:var(--dim);margin-top:4px">'+allTx.length+' transaction'+(allTx.length!==1?'s':'')+' linked to this event</div>'
+    +'</div>';
+
+  // Summary totals
+  h+='<div class="balbar"><h3>&#128200; Summary</h3>';
+  h+='<table style="width:100%;border-collapse:collapse;margin-bottom:6px">'
+    +'<thead><tr>'
+    +'<th style="font-size:10px;color:var(--muted);text-align:left;padding:4px 6px;border-bottom:2px solid var(--bd)"></th>'
+    +'<th style="font-size:10px;color:var(--muted);text-align:right;padding:4px 6px;border-bottom:2px solid var(--bd)">Received / Paid</th>'
+    +'<th style="font-size:10px;color:var(--muted);text-align:right;padding:4px 6px;border-bottom:2px solid var(--bd)">Pending</th>'
+    +'<th style="font-size:10px;color:var(--muted);text-align:right;padding:4px 6px;border-bottom:2px solid var(--bd)">Total</th>'
+    +'</tr></thead>'
+    +'<tbody>'
+    +'<tr>'
+    +'<td style="padding:6px;border-bottom:1px solid var(--bd);font-size:12px;font-weight:600;color:var(--grnl)">&#8593; Income</td>'
+    +'<td style="padding:6px;border-bottom:1px solid var(--bd);font-size:13px;font-weight:700;text-align:right;color:var(--grnl)">'+thb(totIncPaid)+'</td>'
+    +'<td style="padding:6px;border-bottom:1px solid var(--bd);font-size:13px;font-weight:700;text-align:right;color:var(--warn)">'+thb(totIncUnpaid)+'</td>'
+    +'<td style="padding:6px;border-bottom:1px solid var(--bd);font-size:13px;font-weight:700;text-align:right;color:var(--grnl)">'+thb(totInc)+'</td>'
+    +'</tr>'
+    +'<tr>'
+    +'<td style="padding:6px;border-bottom:1px solid var(--bd);font-size:12px;font-weight:600;color:var(--rl)">&#8595; Expense</td>'
+    +'<td style="padding:6px;border-bottom:1px solid var(--bd);font-size:13px;font-weight:700;text-align:right;color:var(--rl)">'+thb(totExpPaid)+'</td>'
+    +'<td style="padding:6px;border-bottom:1px solid var(--bd);font-size:13px;font-weight:700;text-align:right;color:var(--warn)">'+thb(totExpUnpaid)+'</td>'
+    +'<td style="padding:6px;border-bottom:1px solid var(--bd);font-size:13px;font-weight:700;text-align:right;color:var(--rl)">'+thb(totExp)+'</td>'
+    +'</tr>'
+    +'<tr style="background:var(--sf2)">'
+    +'<td style="padding:6px;font-size:12px;font-weight:700">Net Position</td>'
+    +'<td style="padding:6px;font-size:14px;font-weight:800;text-align:right;color:'+(netActual>=0?'var(--grnl)':'var(--rl)')+'">'+thb(netActual)+'</td>'
+    +'<td style="padding:6px;font-size:11px;text-align:right;color:var(--dim)">incl. pending:</td>'
+    +'<td style="padding:6px;font-size:14px;font-weight:800;text-align:right;color:'+(netAll>=0?'var(--grnl)':'var(--rl)')+'">'+thb(netAll)+'</td>'
+    +'</tr>'
+    +'</tbody></table>'
+    +'</div>';
+
+  // Itemised Income
+  h+='<div class="balbar"><h3 style="color:var(--grnl)">&#8593; Income'+(incPaid.length+incUnpaid.length?' ('+(incPaid.length+incUnpaid.length)+')':'')+'</h3>';
+  if(incPaid.length){
+    h+='<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Received ('+incPaid.length+')</div>';
+    h+=txTable(incPaid,'in');
+  }
+  if(incUnpaid.length){
+    h+='<div style="font-size:10px;font-weight:700;color:var(--warn);text-transform:uppercase;letter-spacing:1px;margin:'+(incPaid.length?'10':'0')+'px 0 4px">Pending / Not Received ('+incUnpaid.length+')</div>';
+    h+=txTable(incUnpaid,'in');
+  }
+  if(!incPaid.length&&!incUnpaid.length)h+='<div style="font-size:12px;color:var(--dim);padding:6px 0">No income transactions</div>';
+  h+='</div>';
+
+  // Itemised Expenses
+  h+='<div class="balbar"><h3 style="color:var(--rl)">&#8595; Expenses'+(expPaid.length+expUnpaid.length?' ('+(expPaid.length+expUnpaid.length)+')':'')+'</h3>';
+  if(expPaid.length){
+    h+='<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Paid ('+expPaid.length+')</div>';
+    h+=txTable(expPaid,'out');
+  }
+  if(expUnpaid.length){
+    h+='<div style="font-size:10px;font-weight:700;color:var(--warn);text-transform:uppercase;letter-spacing:1px;margin:'+(expPaid.length?'10':'0')+'px 0 4px">Pending / Not Paid ('+expUnpaid.length+')</div>';
+    h+=txTable(expUnpaid,'out');
+  }
+  if(!expPaid.length&&!expUnpaid.length)h+='<div style="font-size:12px;color:var(--dim);padding:6px 0">No expense transactions</div>';
+  h+='</div>';
+
+  el.innerHTML=h;
+}
+
+function htmlEsc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
 function rMonth(){
   var now=new Date();var curY=now.getFullYear();var curM=now.getMonth();
   var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -2550,7 +2711,7 @@ function settleTab(){
   const settledNotes=document.getElementById('st-notes').value.trim();
   tab.settled=true;tab.settledDate=settledDate;tab.settledNotes=settledNotes;tab.settledBy=CU.name;tab.settledAt=ni();audit('TAB_SETTLED','Settled tab: '+tab.description+' '+thb(tab.amount)+' for '+tab.memberName);
   // Record as income transaction now payment received
-  D.transactions.push({id:uid(),account:'club',direction:'in',category:'merchandise',amount:tab.amount,description:`Tab settled: ${tab.description}`,supplier:'',ref:'',date:settledDate,created:ni(),notes:settledNotes||'Tab payment received',enteredBy:CU.name,productId:tab.productId,variantId:tab.variantId,qty:tab.qty,unitPrice:tab.unitPrice,customerType:tab.customerType,colour:tab.colour,size:tab.size});
+  D.transactions.push({id:uid(),account:'club',direction:'in',category:'merchandise',amount:tab.amount,description:`Tab settled: ${tab.description}`,supplier:'',ref:'',date:settledDate,created:ni(),notes:settledNotes||'Tab payment received',enteredBy:CU.name,productId:tab.productId,variantId:tab.variantId,qty:tab.qty,unitPrice:tab.unitPrice,customerType:tab.customerType,colour:tab.colour,size:tab.size,eventId:tab.eventId||''});
   save();closeM('mo-settletab');renderAll();alert('Tab settled! Income recorded in Ledger.');
 }
 
@@ -3556,6 +3717,7 @@ function openPOPayment(id){
   var bal=poBalance(po);
   var balEl=document.getElementById('pop-balance');
   if(balEl)balEl.innerHTML=thb(bal);
+  populateEvSel('pop-ev','');
   openM('mo-po-payment');
 }
 
@@ -3579,6 +3741,7 @@ function savePOPayment(){
   };
   po.payments.push(payment);
   // Create expense transaction
+  var popEvId=document.getElementById('pop-ev')?document.getElementById('pop-ev').value||'':'';
   D.transactions.push({
     id:uid(),
     account:po.account||'club',
@@ -3592,7 +3755,8 @@ function savePOPayment(){
     created:ni(),
     enteredBy:CU.name,
     paid:true,
-    poId:id
+    poId:id,
+    eventId:popEvId
   });
   // Update PO status
   var newPaid=poPaid(po);
