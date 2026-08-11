@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.31</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.32</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -395,6 +395,26 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       <button class="rb" onclick="goTo('suppliers')"   style="margin-bottom:6px"><span class="rbi">&#128230;</span><div><div class="fml">Suppliers</div><div class="fms">View, add and edit suppliers</div></div></button>
       <button class="rb" onclick="goTo('products')" style="margin-bottom:6px"><span class="rbi">&#128085;&#65039;</span><div><div class="fml">Products</div><div class="fms">Manage products and variants</div></div></button>
       <button class="rb" onclick="goTo('events')" style="margin-bottom:10px"><span class="rbi">&#127881;</span><div><div class="fml">Events &amp; Rides</div><div class="fms">View, add and edit all events</div></div></button>
+      <div class="stitle" style="margin-top:14px;margin-bottom:8px">Event Overview</div>
+      <div style="margin-bottom:8px;padding:0 2px">
+        <select id="db-ev-sel" onchange="renderDashEvent()" style="width:100%;background:var(--sf);border:1px solid var(--bd);color:var(--txt);padding:8px 12px;border-radius:10px;font-size:13px">
+          <option value="">— Select an event —</option>
+        </select>
+      </div>
+      <div id="db-ev-block" style="display:none">
+        <div class="sgrid" style="margin-bottom:8px">
+          <div class="scard"><div class="slbl">Income Received</div><div class="sval g" id="db-ev-inc-paid">฿0</div></div>
+          <div class="scard"><div class="slbl">Income Pending</div><div class="sval" style="color:var(--warn)" id="db-ev-inc-un">฿0</div></div>
+          <div class="scard"><div class="slbl">Expenses Paid</div><div class="sval r" id="db-ev-exp-paid">฿0</div></div>
+          <div class="scard"><div class="slbl">Expenses Pending</div><div class="sval" style="color:var(--warn)" id="db-ev-exp-un">฿0</div></div>
+        </div>
+        <div class="sgrid" style="margin-bottom:8px">
+          <div class="scard"><div class="dlbl">Net Actual</div><div class="sval" id="db-ev-net-act">฿0</div></div>
+          <div class="scard"><div class="dlbl">Net Projected</div><div class="sval" id="db-ev-net-proj">฿0</div></div>
+        </div>
+        <button class="btn btn-out" onclick="dashEventReport()" style="font-size:12px;padding:8px;margin-bottom:4px">&#128196; View Full Event Report</button>
+      </div>
+      <div id="db-ev-none" style="font-size:12px;color:var(--dim);text-align:center;padding:8px 0;margin-bottom:8px">Select an event above to see its financial summary</div>
       <div class="stitle" style="margin-bottom:12px">Reports</div>
       <button class="rb" onclick="showReport('event')"><span class="rbi">&#127881;</span><div><div class="fml">Event Report</div><div class="fms">Full income &amp; expense for a single event</div></div></button>
       <button class="rb" onclick="showReport('monthly')"><span class="rbi">&#128197;</span><div><div class="fml">Monthly Statement</div><div class="fms">Income &amp; expenses, both accounts</div></div></button>
@@ -1393,6 +1413,60 @@ function ni(){return new Date().toISOString();}
 function fd(s){if(!s)return'';try{return new Date(s).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}catch(e){return s;}}
 function fdt(s){if(!s)return'';try{return new Date(s).toLocaleString('en-GB',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){return s;}}
 function uid(){return'x'+Date.now()+Math.random().toString(36).slice(2,6);}
+function renderDashEventSel(){
+  // Populate the event selector on dashboard
+  var sel=document.getElementById('db-ev-sel');
+  if(!sel)return;
+  var prev=sel.value;
+  sel.innerHTML='<option value="">— Select an event —</option>'
+    +(D.events||[]).map(function(e){
+      return '<option value="'+e.id+'"'+(prev===e.id?' selected':'')+'>'+e.name+(e.date?' ('+new Date(e.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})+')':'')+'</option>';
+    }).join('');
+  if(prev)sel.value=prev;
+  renderDashEvent();
+}
+
+function renderDashEvent(){
+  var sel=document.getElementById('db-ev-sel');
+  var block=document.getElementById('db-ev-block');
+  var none=document.getElementById('db-ev-none');
+  if(!sel||!block||!none)return;
+  var evId=sel.value;
+  if(!evId){block.style.display='none';none.style.display='';return;}
+  block.style.display='';none.style.display='none';
+  var txs=D.transactions.filter(function(t){return t.eventId===evId;});
+  var incPaid=txs.filter(function(t){return t.direction==='in'&&t.paid!==false;}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var incUn=txs.filter(function(t){return t.direction==='in'&&t.paid===false;}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var expPaid=txs.filter(function(t){return t.direction==='out'&&t.paid!==false;}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var expUn=txs.filter(function(t){return t.direction==='out'&&t.paid===false;}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var netAct=incPaid-expPaid;
+  var netProj=(incPaid+incUn)-(expPaid+expUn);
+  document.getElementById('db-ev-inc-paid').innerHTML=thb(incPaid);
+  document.getElementById('db-ev-inc-un').innerHTML=thb(incUn);
+  document.getElementById('db-ev-exp-paid').innerHTML=thb(expPaid);
+  document.getElementById('db-ev-exp-un').innerHTML=thb(expUn);
+  var netActEl=document.getElementById('db-ev-net-act');
+  var netProjEl=document.getElementById('db-ev-net-proj');
+  netActEl.innerHTML=thb(Math.abs(netAct));
+  netActEl.style.color=netAct>=0?'var(--grnl)':'var(--rl)';
+  netProjEl.innerHTML=thb(Math.abs(netProj));
+  netProjEl.style.color=netProj>=0?'var(--grnl)':'var(--rl)';
+}
+
+function dashEventReport(){
+  // Navigate to event report pre-selected to current event
+  var sel=document.getElementById('db-ev-sel');
+  var evId=sel?sel.value:'';
+  goTo('more');
+  setTimeout(function(){
+    showReport('event');
+    setTimeout(function(){
+      var revSel=document.getElementById('rev-sel');
+      if(revSel&&evId){revSel.value=evId;renderEventReport();}
+    },100);
+  },50);
+}
+
 function calcBal(){let ci=D.openingClub,co=0,hi=D.openingCharity,ho=0;D.transactions.filter(t=>t.paid!==false).forEach(t=>{const a=parseFloat(t.amount)||0;if(t.account==='club'){t.direction==='in'?ci+=a:co+=a;}else{t.direction==='in'?hi+=a:ho+=a;}});return{club:ci-co,charity:hi-ho};}
 function calcBalAtDate(beforeIso){
   // Returns {club, charity} balance using only transactions strictly before beforeIso
@@ -1449,8 +1523,10 @@ function renderDash(){
   var hbOpen=document.getElementById('db-hb-open');
   if(cbOpen)cbOpen.innerHTML=thb(mthOpen.club);
   if(hbOpen)hbOpen.innerHTML=thb(mthOpen.charity);
-  document.getElementById('db-mem').textContent=D.members.filter(m=>m.status!=='prospect').length;
-  document.getElementById('db-pros').textContent=D.members.filter(m=>m.status==='supporter').length;
+  document.getElementById('db-mem').textContent=D.members.filter(m=>m.status==='paid'||m.status==='unpaid').length;
+  document.getElementById('db-pros').textContent=D.members.filter(m=>m.status==='prospect'||m.status==='supporter'||m.status==='inactive').length;
+  renderDashEventSel();
+  renderDashEventSel();
   const mt=mthTx();
   document.getElementById('db-in').innerHTML=thb(mt.filter(t=>t.direction==='in'&&t.account==='club').reduce((a,t)=>a+parseFloat(t.amount||0),0));
   document.getElementById('db-out').innerHTML=thb(mt.filter(t=>t.direction==='out'&&t.account==='club').reduce((a,t)=>a+parseFloat(t.amount||0),0));
