@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.32</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.33</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -263,6 +263,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
         </div>
         <button class="btn btn-out" onclick="dashEventReport()" style="font-size:12px;padding:8px;margin-bottom:6px">&#128196; View Full Event Report</button>
       </div>
+      <div id="db-pend-ev-note" style="display:none;font-size:10px;color:var(--blul);background:rgba(52,152,219,.1);padding:6px 10px;border-radius:8px;margin-bottom:8px">&#127881; <span id="db-pend-ev-txt"></span></div>
       <div id="db-ev-none" style="font-size:12px;color:var(--dim);text-align:center;padding:6px 0;margin-bottom:8px">Select an event above to see its financial summary</div>
       <div class="sh"><div class="stitle">Recent Entries</div></div>
       <div id="db-tx"><div class="empty"><div class="ei">&#128203;</div>No transactions yet</div></div>
@@ -1424,6 +1425,11 @@ function renderDashEventSel(){
     }).join('');
   if(prev)sel.value=prev;
   renderDashEvent();
+  var _dPE=D.transactions.filter(isPendingEvent);
+  var _dPEIn=_dPE.filter(function(t){return t.direction==='in';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var _dPEOut=_dPE.filter(function(t){return t.direction==='out';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var _pn=document.getElementById('db-pend-ev-note');var _pt=document.getElementById('db-pend-ev-txt');
+  if(_pn&&_pt){if(_dPEIn+_dPEOut>0){_pt.textContent='Pending event entries excluded from account totals: '+thb(_dPEIn)+' income / '+thb(_dPEOut)+' costs';_pn.style.display='';}else{_pn.style.display='none';}}
 }
 
 function renderDashEvent(){
@@ -1470,6 +1476,8 @@ function dashEventReport(){
     });
   });
 }
+
+function isPendingEvent(t){return !!(t.eventId&&t.paid===false);}
 
 function calcBal(){let ci=D.openingClub,co=0,hi=D.openingCharity,ho=0;D.transactions.filter(t=>t.paid!==false).forEach(t=>{const a=parseFloat(t.amount)||0;if(t.account==='club'){t.direction==='in'?ci+=a:co+=a;}else{t.direction==='in'?hi+=a:ho+=a;}});return{club:ci-co,charity:hi-ho};}
 function calcBalAtDate(beforeIso){
@@ -2137,6 +2145,14 @@ function renderSettings(){
   renderSuppliers();
 }
 function setIS(el){const sz=el.dataset.sz||null;const k=skey(el.dataset.pid,el.dataset.vid,sz,el.dataset.col);if(!D.stock[k])D.stock[k]={initial:0,ordered:0,sold:0};D.stock[k].initial=parseInt(el.value)||0;}
+function resetStockKey(pid,vid,sz,col){
+  if(!confirm('Reset stock for this variant/size/colour to zero?'))return;
+  var k=skey(pid,vid,sz,col);
+  D.stock[k]={initial:0,ordered:0,sold:0};
+  var p=D.products.find(function(x){return x.id===pid;});
+  audit('STOCK_RESET','Stock reset to 0 for '+(p?p.name:'product')+' key: '+k);
+  save();renderStockMgr();renderSettings();
+}
 function saveInitStock(){save();alert('Initial stock saved!');renderStock();renderDash();}
 function saveLST(){D.lowStockThreshold=parseInt(document.getElementById('set-lst').value)||5;audit('SETTINGS','Low stock threshold changed to '+D.lowStockThreshold);save();alert('Threshold saved!');renderStock();renderDash();}
 function saveBalances(){const ob=D.openingClub,oh=D.openingCharity;D.openingClub=parseFloat(document.getElementById('set-cb').value)||0;D.openingCharity=parseFloat(document.getElementById('set-hb').value)||0;audit('SETTINGS','Opening balances changed',{club:ob,charity:oh},{club:D.openingClub,charity:D.openingCharity});save();renderDash();alert('Balances saved!');}
@@ -2436,6 +2452,7 @@ function rMonth(){
     +'</div><div id="rm-body"></div>';
   // ---- original content below moved to renderMonthContent ----
 }
+  if(_mPEIn+_mPEOut>0)el.innerHTML='<div style="font-size:10px;color:var(--blul);margin:0 0 10px;background:rgba(52,152,219,.1);padding:6px 8px;border-radius:6px">&#127881; Pending event entries excluded this month: '+thb(_mPEIn)+' income / '+thb(_mPEOut)+' costs &mdash; see Event Report.</div>'+el.innerHTML;
 function renderMonthContent(){
   var el=document.getElementById('rm-body');if(!el)return;
   var mthSel=document.getElementById('rm-month');
@@ -2453,6 +2470,8 @@ function renderMonthContent(){
   var ob=calcBalAtDate(monthStart);
   // Closing balance = current balance
   var cb=calcBal();
+  var _mPEIn=D.transactions.filter(function(t){return isPendingEvent(t)&&(function(){var d=new Date(t.date||t.created);return d.getMonth()===mth&&d.getFullYear()===yr;})()&&t.direction==='in';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var _mPEOut=D.transactions.filter(function(t){return isPendingEvent(t)&&(function(){var d=new Date(t.date||t.created);return d.getMonth()===mth&&d.getFullYear()===yr;})()&&t.direction==='out';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
   // This month's paid transactions
   var mt=D.transactions.filter(function(t){if(t.paid===false)return false;var d=new Date(t.date||t.created);return d.getMonth()===mth&&d.getFullYear()===yr;});
   var mc=mt.filter(function(t){return t.account==='club';});
@@ -2460,7 +2479,11 @@ function renderMonthContent(){
   var c=sumio(mc);
   var h=sumio(mh);
   // Committed items
-  var allUnpaid=D.transactions.filter(function(t){return t.paid===false;});
+  var pendingEvA=D.transactions.filter(isPendingEvent);
+  var pendingEvAIn=pendingEvA.filter(function(t){return t.direction==='in';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var pendingEvAOut=pendingEvA.filter(function(t){return t.direction==='out';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var pendingEvANote=pendingEvAIn+pendingEvAOut>0?'<div style="font-size:10px;color:var(--blul);margin:4px 0 8px;background:rgba(52,152,219,.1);padding:6px 8px;border-radius:6px">&#127881; Pending event entries excluded: '+thb(pendingEvAIn)+' income / '+thb(pendingEvAOut)+' costs &mdash; see Event Report.</div>':'';
+  var allUnpaid=D.transactions.filter(function(t){return t.paid===false&&!isPendingEvent(t);});
   var tabTotal=(D.tabs||[]).filter(function(t){return !t.settled;}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
   var poTotal=(D.purchaseOrders||[]).filter(function(po){return po.status!=='received'&&po.status!=='draft'&&poBalance(po)>0;}).reduce(function(a,po){return a+poBalance(po);},0);
   var unpaidIn=allUnpaid.filter(function(t){return t.direction==='in'&&t.category!=='membership_fee'&&t.category!=='merchandise';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
@@ -2502,7 +2525,7 @@ function renderMonthContent(){
     +br('Closing Balance',thb(cb.charity),'var(--gold)')
     +'</div>'
     // ── Committed ──
-    +'<div class="balbar"><h3>&#128203; Committed &amp; Outstanding</h3>'+committedNote
+    +'<div class="balbar"><h3>&#128203; Committed &amp; Outstanding</h3>'+pendingEvANote+committedNote
     +'<div style="font-size:11px;font-weight:700;color:var(--grnl);padding:2px 0">Due to the Club</div>'
     +br('Unpaid Fees',thb(feesOwed),'var(--grnl)')
     +br('Merch Tabs',thb(tabTotal),'var(--grnl)')
@@ -2975,6 +2998,8 @@ function renderMeeting(){
     if(periodEnd&&d>=periodEnd)return false;
     return true;
   });
+  var _pPEIn=D.transactions.filter(function(t){if(!isPendingEvent(t))return false;var d=t.date||t.created||'';return d>=periodStart&&(!periodEnd||d<periodEnd)&&t.direction==='in';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var _pPEOut=D.transactions.filter(function(t){if(!isPendingEvent(t))return false;var d=t.date||t.created||'';return d>=periodStart&&(!periodEnd||d<periodEnd)&&t.direction==='out';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
   var pIn=periodTx.filter(function(t){return t.direction==='in';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
   var pOut=periodTx.filter(function(t){return t.direction==='out';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
   var unpaidFees=D.members.filter(function(m){return m.status==='unpaid';});
@@ -3129,7 +3154,7 @@ function renderMeeting(){
     +(svRows.length?svRows.map(function(r){return'<div class="brow"><span class="blbl">'+r.name+'</span><span style="font-size:11px;color:var(--muted)">'+r.qty+' &times; </span><span style="font-weight:600">'+thb(r.val)+'</span></div>';}).join(''):'<div style="font-size:12px;color:var(--dim);padding:4px 0">No stock with production costs set</div>')
     +'<div class="brow" style="font-weight:700"><span class="blbl">Total Stock Value at Cost</span><span style="font-weight:700;color:var(--rl)">'+thb(svTotal)+'</span></div>'
     +'</div>';
-  el.innerHTML=h;
+  el.innerHTML=(_pPEIn+_pPEOut>0?'<div style="font-size:10px;color:var(--blul);margin:0 0 10px;background:rgba(52,152,219,.1);padding:6px 8px;border-radius:6px">&#127881; Pending event entries excluded: '+thb(_pPEIn)+' income / '+thb(_pPEOut)+' costs.</div>':'')+h;
 }
 function checkAnnualFeeReset(){
   var curYear=new Date().getFullYear();
