@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.37</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.38</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -1415,14 +1415,7 @@ function goTo(n){
   document.getElementById('scr-'+n).classList.add('on');
   var nb=document.getElementById('nb-'+n);if(nb)nb.classList.add('on');
   document.getElementById('fab').style.display=n==='more'?'none':'flex';
-  // Defer the content render to the next paint frame. Doing the screen's
-  // display:none -> block switch and its innerHTML fill in the exact same
-  // tick can leave some Android WebView builds showing a stale/empty paint
-  // until another layout-triggering interaction (e.g. tapping a filter tab)
-  // forces a repaint. Waiting one frame lets the visibility change settle first.
-  requestAnimationFrame(function(){
-    ({dash:renderDash,ledger:renderLedger,members:renderMembers,merch:()=>{renderMerch();renderStock();},tabs:renderTabLedger,events:renderEvents,po:renderPOs,stockmgr:renderStockMgr,config:renderConfig,suppliers:renderSuppliers,products:renderProducts,more:renderSettings}[n]||(() =>{}))();
-  });
+  ({dash:renderDash,ledger:renderLedger,members:renderMembers,merch:()=>{renderMerch();renderStock();},tabs:renderTabLedger,events:renderEvents,po:renderPOs,stockmgr:renderStockMgr,config:renderConfig,suppliers:renderSuppliers,products:renderProducts,more:renderSettings}[n]||(() =>{}))();
   updateBackBtn(n==='dash'?'scr-dash':'scr-'+n);
 }
 function setLTab(b,v){document.querySelectorAll('#ledger-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');LF=v;renderLedger();}
@@ -3494,9 +3487,11 @@ function usePOCostEstimate(){
 }
 
 function renderPOs(){
+  try{
   if(!D.purchaseOrders)D.purchaseOrders=[];
   var el=document.getElementById('po-list');if(!el)return;
   var pos=D.purchaseOrders;
+  alert('DIAGNOSTIC renderPOs()\nD.purchaseOrders.length = '+D.purchaseOrders.length+'\n_poFilter = '+_poFilter+'\n#po-list element found = '+(!!el));
   if(_poFilter!=='all')pos=pos.filter(function(p){return p.status===_poFilter;});
   pos=[...pos].sort(function(a,b){return(b.date||'').localeCompare(a.date||'');});
   if(!pos.length){
@@ -3530,6 +3525,9 @@ function renderPOs(){
       +'</div>'
       +'</div>';
   }).join('');
+  }catch(e){
+    alert('DIAGNOSTIC — renderPOs() threw:\n\n'+e.message+'\n\n'+(e.stack||'(no stack)'));
+  }
 }
 
 function _poOpen(id){
