@@ -1837,7 +1837,7 @@ function renderTabLedger(){
           <button onclick="openSettleTab('${t.id}')" style="flex:2;background:none;border:1px solid var(--grn);color:var(--grnl);border-radius:20px;padding:4px 12px;cursor:pointer;font-size:11px">&#10003; Mark Paid</button>
         </div>`
       :t.isPO
-      ?`<button onclick="openPODetailById('${t.id}')" style="margin-top:8px;background:none;border:1px solid var(--bd);color:var(--muted);border-radius:20px;padding:4px 12px;cursor:pointer;font-size:11px;width:100%">&#128196; View PO</button>`
+      ?`<button onclick="alert('TAP REGISTERED');openPODetailById('${t.id}')" style="margin-top:8px;background:none;border:1px solid var(--bd);color:var(--muted);border-radius:20px;padding:4px 12px;cursor:pointer;font-size:11px;width:100%">&#128196; View PO</button>`
       :`<div style="display:flex;gap:6px;margin-top:8px">
           <button onclick="openTxEdit('${t.id}')" style="flex:1;background:none;border:1px solid var(--bd);color:var(--muted);border-radius:20px;padding:4px 12px;cursor:pointer;font-size:11px">&#9998; Edit</button>
           <button onclick="markTxPaid('${t.id}')" style="flex:2;background:none;border:1px solid var(--grn);color:var(--grnl);border-radius:20px;padding:4px 12px;cursor:pointer;font-size:11px">&#10003; Mark Paid / Received</button>
