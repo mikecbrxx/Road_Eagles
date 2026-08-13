@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.33</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.34</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -700,6 +700,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       <div id="po-ag-label" style="display:none;font-size:12px;color:var(--gold);margin-top:4px;padding:2px 0">&#127381; <span id="po-ag-label-text"></span></div>
     </div>
     <div class="fg"><label>Ref / PO Number</label><input type="text" id="po-ref" placeholder="Optional"></div>
+    <div class="fg"><label>Event (optional)</label><select id="po-ev"><option value="">&#8212; No Event &#8212;</option></select></div>
     <div class="fg"><label>Notes</label><textarea id="po-notes" style="height:50px"></textarea></div>
     <div class="fg" id="po-status-row" style="display:none">
       <label>&#9888;&#65039; Override Status (Admin)</label>
@@ -1256,9 +1257,25 @@ window.addEventListener('online',function(){
   // Pull from Supabase first - it is the source of truth
   // Never push on reconnect as local data may be stale
   if(D.supabaseUrl&&D.supabaseKey){
-    loadFromSupabase(function(reloaded){
-      if(reloaded){renderAll();loadSettings();}
-    });
+    var doReload=function(){
+      loadFromSupabase(function(reloaded){
+        if(reloaded){renderAll();loadSettings();}
+      });
+    };
+    if(_syncPending){
+      // A local save is still uploading. If we pull from Supabase right now we may
+      // read a snapshot that hasn't received that write yet, wiping the change from
+      // memory even though it was correctly saved. Wait (briefly, capped) for the
+      // in-flight upload to land, THEN pull - so Supabase stays the single source of
+      // truth and what we read from it actually includes our own confirmed write.
+      var waited=0;
+      var iv=setInterval(function(){
+        waited+=150;
+        if(!_syncPending||waited>=5000){clearInterval(iv);doReload();}
+      },150);
+    } else {
+      doReload();
+    }
   }
 });
 window.addEventListener('offline',function(){showOffline();});
@@ -3597,6 +3614,7 @@ function openNewPO(){
   document.getElementById('po-ref').value='';
   document.getElementById('po-notes').value='';
   document.getElementById('po-account').value='club';
+  populateEvSel('po-ev','');
   // Populate supplier datalist
   document.getElementById('po-sup-dl').innerHTML=[...D.suppliers].sort(function(a,b){
     return(a.name||'').localeCompare(b.name||'');
@@ -3696,6 +3714,7 @@ function savePO(status){
     total:total,
     account:document.getElementById('po-account').value,
     ref:document.getElementById('po-ref').value.trim(),
+    eventId:document.getElementById('po-ev')?document.getElementById('po-ev').value||'':'',
     notes:document.getElementById('po-notes').value.trim(),
     lineItems:_poLineItems.filter(function(li){return li.productId&&li.qty>0;}).map(function(li){return{id:li.id,productId:li.productId,variantId:li.variantId,size:li.size||'',colour:li.colour||'',qty:li.qty||1};}),
     // Legacy single-product fields (kept for compatibility)
@@ -3756,6 +3775,7 @@ function openEditPO(id){
   document.getElementById('po-account').value=po.account||'club';
   document.getElementById('po-ref').value=po.ref||'';
   document.getElementById('po-notes').value=po.notes||'';
+  populateEvSel('po-ev',po.eventId||'');
   document.getElementById('po-sup-dl').innerHTML=[...D.suppliers].sort(function(a,b){
     return(a.name||'').localeCompare(b.name||'');
   }).map(function(s){return'<option value="'+(s.name||s)+'">';}).join('');
@@ -3954,6 +3974,7 @@ function confirmPOReceive(){
 
 
 function openPODetail(po){
+  if(!po){alert('Could not find that purchase order — it may have just been updated by a sync. Please go back and try again.');return;}
   window._currentPO=po;
   // Show full PO details in a modal - build dynamic content
   var paid=poPaid(po);
