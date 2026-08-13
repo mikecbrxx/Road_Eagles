@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.35</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.37</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -415,6 +415,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       <button class="rb" onclick="goTo('config')" style="margin-bottom:6px"><span class="rbi">&#9881;&#65039;</span><div><div class="fml">Categories &amp; Config</div><div class="fms">Manage categories, sizes, colours, event types</div></div></button>
       <button class="rb" onclick="goTo('suppliers')"   style="margin-bottom:6px"><span class="rbi">&#128230;</span><div><div class="fml">Suppliers</div><div class="fms">View, add and edit suppliers</div></div></button>
       <button class="rb" onclick="goTo('products')" style="margin-bottom:6px"><span class="rbi">&#128085;&#65039;</span><div><div class="fml">Products</div><div class="fms">Manage products and variants</div></div></button>
+      <button class="rb" onclick="goTo('po')" style="margin-bottom:6px"><span class="rbi">&#128230;</span><div><div class="fml">Purchase Orders</div><div class="fms">View, create and manage all purchase orders</div></div></button>
       <button class="rb" onclick="goTo('events')" style="margin-bottom:10px"><span class="rbi">&#127881;</span><div><div class="fml">Events &amp; Rides</div><div class="fms">View, add and edit all events</div></div></button>
       <div class="stitle" style="margin-bottom:12px">Reports</div>
       <button class="rb" onclick="showReport('event')"><span class="rbi">&#127881;</span><div><div class="fml">Event Report</div><div class="fms">Full income &amp; expense for a single event</div></div></button>
@@ -1414,7 +1415,14 @@ function goTo(n){
   document.getElementById('scr-'+n).classList.add('on');
   var nb=document.getElementById('nb-'+n);if(nb)nb.classList.add('on');
   document.getElementById('fab').style.display=n==='more'?'none':'flex';
-  ({dash:renderDash,ledger:renderLedger,members:renderMembers,merch:()=>{renderMerch();renderStock();},tabs:renderTabLedger,events:renderEvents,po:renderPOs,stockmgr:renderStockMgr,config:renderConfig,suppliers:renderSuppliers,products:renderProducts,more:renderSettings}[n]||(() =>{}))();
+  // Defer the content render to the next paint frame. Doing the screen's
+  // display:none -> block switch and its innerHTML fill in the exact same
+  // tick can leave some Android WebView builds showing a stale/empty paint
+  // until another layout-triggering interaction (e.g. tapping a filter tab)
+  // forces a repaint. Waiting one frame lets the visibility change settle first.
+  requestAnimationFrame(function(){
+    ({dash:renderDash,ledger:renderLedger,members:renderMembers,merch:()=>{renderMerch();renderStock();},tabs:renderTabLedger,events:renderEvents,po:renderPOs,stockmgr:renderStockMgr,config:renderConfig,suppliers:renderSuppliers,products:renderProducts,more:renderSettings}[n]||(() =>{}))();
+  });
   updateBackBtn(n==='dash'?'scr-dash':'scr-'+n);
 }
 function setLTab(b,v){document.querySelectorAll('#ledger-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');LF=v;renderLedger();}
