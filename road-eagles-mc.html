@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.38</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.39</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -3487,11 +3487,23 @@ function usePOCostEstimate(){
 }
 
 function renderPOs(){
-  try{
   if(!D.purchaseOrders)D.purchaseOrders=[];
   var el=document.getElementById('po-list');if(!el)return;
+  // Defensive fallback: if _poFilter is ever not one of the recognized values
+  // (root cause unconfirmed, but reproducibly observed as undefined on some
+  // fresh loads), treat it as 'all' rather than silently filtering to zero
+  // results, and re-sync the visible tab so it matches what's actually shown.
+  var validFilters=['all','draft','ordered','part_paid','paid','part_received','received'];
+  if(validFilters.indexOf(_poFilter)===-1){
+    _poFilter='all';
+    var tabsEl=document.getElementById('po-tabs');
+    if(tabsEl){
+      tabsEl.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});
+      var allBtn=tabsEl.querySelector('[data-cat="all"]');
+      if(allBtn)allBtn.classList.add('on');
+    }
+  }
   var pos=D.purchaseOrders;
-  alert('DIAGNOSTIC renderPOs()\nD.purchaseOrders.length = '+D.purchaseOrders.length+'\n_poFilter = '+_poFilter+'\n#po-list element found = '+(!!el));
   if(_poFilter!=='all')pos=pos.filter(function(p){return p.status===_poFilter;});
   pos=[...pos].sort(function(a,b){return(b.date||'').localeCompare(a.date||'');});
   if(!pos.length){
@@ -3525,9 +3537,6 @@ function renderPOs(){
       +'</div>'
       +'</div>';
   }).join('');
-  }catch(e){
-    alert('DIAGNOSTIC — renderPOs() threw:\n\n'+e.message+'\n\n'+(e.stack||'(no stack)'));
-  }
 }
 
 function _poOpen(id){
