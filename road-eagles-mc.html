@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.34</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.35</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -3419,14 +3419,17 @@ function renderProducts(){
 // ══════════════════════════════════════════════════════════════
 var _poFilter='all';
 
-const PO_STATUS={
-  draft:    {label:'Draft',     col:'var(--muted)'},
-  ordered:  {label:'Ordered',   col:'var(--gold)'},
-  part_paid:{label:'Part Paid', col:'var(--warn)'},
-  paid:     {label:'Paid',      col:'var(--grn)'},
-  part_received:{label:'Part Rcvd',col:'var(--warn)'},
-  received: {label:'Received',  col:'var(--grn)'}
-};
+function getPOStatus(status){
+  var m={
+    draft:    {label:'Draft',     col:'var(--muted)'},
+    ordered:  {label:'Ordered',   col:'var(--gold)'},
+    part_paid:{label:'Part Paid', col:'var(--warn)'},
+    paid:     {label:'Paid',      col:'var(--grn)'},
+    part_received:{label:'Part Rcvd',col:'var(--warn)'},
+    received: {label:'Received',  col:'var(--grn)'}
+  };
+  return m[status]||{label:status,col:'var(--muted)'};
+}
 
 function setPOTab(btn,val){
   document.querySelectorAll('#po-tabs .tab').forEach(function(t){t.classList.remove('on');});
@@ -3497,7 +3500,7 @@ function renderPOs(){
   el.innerHTML=pos.map(function(po,i){
     var paid=poPaid(po);
     var bal=poBalance(po);
-    var st=PO_STATUS[po.status]||{label:po.status,col:'var(--muted)'};
+    var st=getPOStatus(po.status);
     var prod=po.productId?D.products.find(function(p){return p.id===po.productId;}):null;
     return '<div style="background:var(--sf2);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:8px">'
       +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">'
@@ -3979,7 +3982,7 @@ function openPODetail(po){
   // Show full PO details in a modal - build dynamic content
   var paid=poPaid(po);
   var bal=poBalance(po);
-  var st=PO_STATUS[po.status]||{label:po.status,col:'var(--muted)'};
+  var st=getPOStatus(po.status);
   var prod=po.productId?D.products.find(function(p){return p.id===po.productId;}):null;
   var canEdit=po.status==='draft'||po.status==='ordered'||(CU&&CU.role==='admin');
   var canPay=bal>0.01&&po.status!=='received';
@@ -4043,14 +4046,7 @@ function openPODetail(po){
 function editPOFromDetail(id){closeM('mo-report');openEditPO(id);}
 function payPOFromDetail(id){closeM('mo-report');openPOPayment(id);}
 function receivePOFromDetail(id){closeM('mo-report');openPOReceive(id);}
-function openPODetailById(id){
-  try{
-    var po=D.purchaseOrders.find(function(p){return p.id===id;});
-    openPODetail(po);
-  }catch(e){
-    alert('DIAGNOSTIC — error opening PO:\n\n'+e.message+'\n\n'+(e.stack||'(no stack)'));
-  }
-}
+function openPODetailById(id){var po=D.purchaseOrders.find(function(p){return p.id===id;});openPODetail(po);}
 
 function deletePO(id){
   if(!CU||CU.role!=='admin'){alert('Admin only.');return;}
