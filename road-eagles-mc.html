@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.40</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.42</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -624,6 +624,10 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="fg irow"><div><label>Date</label><input type="date" id="ev-date"></div><div><label>Type</label><select id="ev-type"></select></div></div>
   <div class="fg"><label>Venue</label><input type="text" id="ev-venue" placeholder="Venue name / location"></div>
   <div class="fg"><label>Notes</label><textarea id="ev-notes" placeholder="Description, highlights&#8230;"></textarea></div>
+  <div class="fg"><label>Status</label>
+    <div class="tg"><button class="tgb" id="ev-stat-open" onclick="selEvStatus(false)">&#128275; Open</button><button class="tgb" id="ev-stat-closed" onclick="selEvStatus(true)">&#9989; Closed</button></div>
+    <div style="font-size:10px;color:var(--muted);margin-top:4px">While Open, income/expenses tagged to this event are tracked but excluded from Club/Charity account totals. Closing the event brings them into the totals.</div>
+  </div>
   <div class="notice" style="margin-top:4px">&#128161; Record income/expenses in the Ledger using Event Income / Event Expense categories.</div>
   <button class="btn btn-gold" onclick="saveEvent()">Save Event</button>
 </div></div>
@@ -1495,14 +1499,36 @@ function dashEventReport(){
   });
 }
 
-function isPendingEvent(t){return !!(t.eventId&&t.paid===false);}
+// Is this transaction tied to an event that hasn't been closed yet?
+// While an event is open, everything tagged to it (paid or not) is tracked
+// but deliberately held back from Club/Charity account totals until the
+// event is marked Closed on the event modal.
+function isEventLocked(t){
+  if(!t.eventId)return false;
+  var ev=D.events.find(function(e){return e.id===t.eventId;});
+  return !!(ev&&!ev.closed);
+}
 
-function calcBal(){let ci=D.openingClub,co=0,hi=D.openingCharity,ho=0;D.transactions.filter(t=>t.paid!==false).forEach(t=>{const a=parseFloat(t.amount)||0;if(t.account==='club'){t.direction==='in'?ci+=a:co+=a;}else{t.direction==='in'?hi+=a:ho+=a;}});return{club:ci-co,charity:hi-ho};}
+// "Pending" for display/banner purposes: either held back because its event
+// is still open, or the older paid=false+eventId case (kept for entries
+// whose event was later deleted, so they don't just silently drop off).
+function isPendingEvent(t){return !!(t.eventId&&(isEventLocked(t)||t.paid===false));}
+
+// Single source of truth for "does this transaction count toward confirmed
+// club/charity account totals" (balances, Monthly Statement, Annual Summary,
+// Meeting Report, custom period reports). Consolidated from ~7 previously
+// separate identical paid!==false checks so future logic (e.g. excluding
+// transactions tied to an open event) only needs to change here. Also now
+// excludes anything tied to an open (unclosed) event, regardless of paid status.
+// transactions tied to an open/unclosed event) only needs to change here.
+function isConfirmed(t){return t.paid!==false&&!isEventLocked(t);}
+
+function calcBal(){let ci=D.openingClub,co=0,hi=D.openingCharity,ho=0;D.transactions.filter(isConfirmed).forEach(t=>{const a=parseFloat(t.amount)||0;if(t.account==='club'){t.direction==='in'?ci+=a:co+=a;}else{t.direction==='in'?hi+=a:ho+=a;}});return{club:ci-co,charity:hi-ho};}
 function calcBalAtDate(beforeIso){
   // Returns {club, charity} balance using only transactions strictly before beforeIso
   var ci=D.openingClub,co=0,hi=D.openingCharity,ho=0;
   D.transactions.filter(function(t){
-    if(t.paid===false)return false;
+    if(!isConfirmed(t))return false;
     var d=t.date||t.created||'';
     return d<beforeIso;
   }).forEach(function(t){
@@ -1523,7 +1549,7 @@ function catBdDir(txs,direction,color){
     return br('&nbsp;&nbsp;'+(CM[e[0]]||e[0]),thb(e[1]),color);
   }).join('');
 }
-function mthTx(){const n=new Date(),m=n.getMonth(),y=n.getFullYear();return D.transactions.filter(t=>{if(t.paid===false)return false;const d=new Date(t.date||t.created);return d.getMonth()===m&&d.getFullYear()===y;});}
+function mthTx(){const n=new Date(),m=n.getMonth(),y=n.getFullYear();return D.transactions.filter(t=>{if(!isConfirmed(t))return false;const d=new Date(t.date||t.created);return d.getMonth()===m&&d.getFullYear()===y;});}
 function calcFee(j){return D.memberFee||2000;}
 const CM={merchandise:'&#128085;&#65039; Merchandise',membership_fee:'&#129338;&#65039; Membership Fee',donation_in:'&#129309; Donation In',donation_out:'&#128157; Donation Out',collection_box:'&#128230; Collection Box',event_income:'&#127881; Event Income',event_expense:'&#127914; Event Expense',venue:'&#127999;&#65039; Venue',music:'&#127925; Music',marketing:'&#128196; Marketing',purchase:'&#128722; Purchase',petty_cash:'&#128181; Petty Cash',charity_cash:'&#10084;&#65039; Charity Cash',charity_goods:'&#128230; Charity Goods',club_donation_out:'&#129309; Club Donation Out',ride_income:'&#128693;&#65039; Ride Income',stock_order:'&#128230; Stock Order',other:'&#9961; Other'};
 var CATS_I=D.incomeCategories||['merchandise','membership_fee','donation_in','collection_box','event_income','ride_income','other'];
@@ -1869,11 +1895,14 @@ function renderEvents(){
     var eI=et.filter(function(t){return t.direction==='in';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
     var eO=et.filter(function(t){return t.direction==='out';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
     var evId=ev.id;
+    var statusBadge=ev.closed
+      ?'<span style="font-size:10px;font-weight:700;color:var(--grnl);background:rgba(39,174,96,.15);border:1px solid var(--grn);border-radius:20px;padding:2px 8px;margin-left:6px">&#9989; CLOSED</span>'
+      :'<span style="font-size:10px;font-weight:700;color:var(--rl);background:rgba(192,57,43,.15);border:1px solid var(--red);border-radius:20px;padding:2px 8px;margin-left:6px">&#128275; OPEN</span>';
     var delBtn=isAdmin?('<button data-evid="'+evId+'" onclick="deleteEvent(this.dataset.evid)" style="background:none;border:1px solid var(--red);color:var(--rl);border-radius:8px;padding:2px 8px;cursor:pointer;font-size:11px">Delete</button>'):'';
     var txSummary=et.length?('<div style="margin-top:8px;font-size:12px">Income: <span style="color:var(--grnl)">'+thb(eI)+'</span> &middot; Costs: <span style="color:var(--rl)">'+thb(eO)+'</span> &middot; Net: <span style="color:'+(eI-eO>=0?'var(--grnl)':'var(--rl)')+'">'+thb(eI-eO)+'</span></div>'):'';
     return '<div class="ec">'
       +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
-      +'<div class="en" style="margin:0">'+ev.name+'</div>'
+      +'<div class="en" style="margin:0">'+ev.name+statusBadge+'</div>'
       +'<div style="display:flex;gap:5px">'
       +'<button data-evid="'+evId+'" onclick="editEvent(this.dataset.evid)" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:8px;padding:2px 8px;cursor:pointer;font-size:11px">Edit</button>'
       +delBtn
@@ -2030,11 +2059,13 @@ function saveMember(){const name=document.getElementById('mem-name').value.trim(
 
 // Event Modal
 function openEventModal(){document.getElementById('mo-ev-t').textContent='Add Event';document.getElementById('ev-id').value='';['ev-name','ev-venue','ev-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('ev-date').value=nd();var etSel=document.getElementById('ev-type');
-  if(etSel){etSel.innerHTML=(D.eventTypes||['party','ride','fundraiser','other']).map(function(t){return'<option value="'+t+'">'+t.charAt(0).toUpperCase()+t.slice(1)+'</option>';}).join('');etSel.value='party';}openM('mo-event');}
+  if(etSel){etSel.innerHTML=(D.eventTypes||['party','ride','fundraiser','other']).map(function(t){return'<option value="'+t+'">'+t.charAt(0).toUpperCase()+t.slice(1)+'</option>';}).join('');etSel.value='party';}selEvStatus(false);openM('mo-event');}
 function editEvent(id){const ev=D.events.find(e=>e.id===id);if(!ev)return;document.getElementById('mo-ev-t').textContent='Edit Event';document.getElementById('ev-id').value=id;document.getElementById('ev-name').value=ev.name;document.getElementById('ev-date').value=ev.date||'';var etSelE=document.getElementById('ev-type');
-  if(etSelE){etSelE.innerHTML=(D.eventTypes||['party','ride','fundraiser','other']).map(function(t){return'<option value="'+t+'">'+t.charAt(0).toUpperCase()+t.slice(1)+'</option>';}).join('');etSelE.value=ev.type||'party';}document.getElementById('ev-venue').value=ev.venue||'';document.getElementById('ev-notes').value=ev.notes||'';openM('mo-event');}
+  if(etSelE){etSelE.innerHTML=(D.eventTypes||['party','ride','fundraiser','other']).map(function(t){return'<option value="'+t+'">'+t.charAt(0).toUpperCase()+t.slice(1)+'</option>';}).join('');etSelE.value=ev.type||'party';}document.getElementById('ev-venue').value=ev.venue||'';document.getElementById('ev-notes').value=ev.notes||'';selEvStatus(!!ev.closed);openM('mo-event');}
 function deleteEvent(id){if(!CU||CU.role!=='admin')return;if(!confirm('Delete this event? Linked transactions will remain.'))return;D.events=D.events.filter(e=>e.id!==id);save();renderEvents();}
-function saveEvent(){const name=document.getElementById('ev-name').value.trim();if(!name){alert('Event name required');return;}if(!D.events)D.events=[];const eid=document.getElementById('ev-id').value;const evData={name,date:document.getElementById('ev-date').value,type:document.getElementById('ev-type').value,venue:document.getElementById('ev-venue').value.trim(),notes:document.getElementById('ev-notes').value.trim()};if(eid){const ev=D.events.find(e=>e.id===eid);if(ev)Object.assign(ev,evData);}else{D.events.push({id:uid(),...evData,created:ni(),addedBy:CU.name});}save();closeM('mo-event');renderEvents();}
+var _evClosed=false;
+function selEvStatus(closed){_evClosed=closed;var ob=document.getElementById('ev-stat-open'),cb=document.getElementById('ev-stat-closed');if(ob)ob.className='tgb'+(!closed?' tout':'');if(cb)cb.className='tgb'+(closed?' tin':'');}
+function saveEvent(){const name=document.getElementById('ev-name').value.trim();if(!name){alert('Event name required');return;}if(!D.events)D.events=[];const eid=document.getElementById('ev-id').value;const evData={name,date:document.getElementById('ev-date').value,type:document.getElementById('ev-type').value,venue:document.getElementById('ev-venue').value.trim(),notes:document.getElementById('ev-notes').value.trim(),closed:_evClosed};if(eid){const ev=D.events.find(e=>e.id===eid);if(ev){var wasClosed=!!ev.closed;Object.assign(ev,evData);if(wasClosed!==_evClosed)audit('EVENT_STATUS',(_evClosed?'Closed':'Re-opened')+' event: '+ev.name);}}else{D.events.push({id:uid(),...evData,created:ni(),addedBy:CU.name});}save();closeM('mo-event');renderEvents();renderAll();}
 
 // Product Modal
 let _prSz=false,_prMO=false,_prVars=[];
@@ -2491,7 +2522,7 @@ function renderMonthContent(){
   var _mPEIn=D.transactions.filter(function(t){return isPendingEvent(t)&&(function(){var d=new Date(t.date||t.created);return d.getMonth()===mth&&d.getFullYear()===yr;})()&&t.direction==='in';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
   var _mPEOut=D.transactions.filter(function(t){return isPendingEvent(t)&&(function(){var d=new Date(t.date||t.created);return d.getMonth()===mth&&d.getFullYear()===yr;})()&&t.direction==='out';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
   // This month's paid transactions
-  var mt=D.transactions.filter(function(t){if(t.paid===false)return false;var d=new Date(t.date||t.created);return d.getMonth()===mth&&d.getFullYear()===yr;});
+  var mt=D.transactions.filter(function(t){if(!isConfirmed(t))return false;var d=new Date(t.date||t.created);return d.getMonth()===mth&&d.getFullYear()===yr;});
   var mc=mt.filter(function(t){return t.account==='club';});
   var mh=mt.filter(function(t){return t.account==='charity';});
   var c=sumio(mc);
@@ -2563,8 +2594,8 @@ function rAnnual(){
   var ob=calcBalAtDate(yearStart);
   // Closing balance = current total balance
   var cb=calcBal();
-  var c=D.transactions.filter(function(t){return t.account==='club'&&t.paid!==false;});
-  var h=D.transactions.filter(function(t){return t.account==='charity'&&t.paid!==false;});
+  var c=D.transactions.filter(function(t){return t.account==='club'&&isConfirmed(t);});
+  var h=D.transactions.filter(function(t){return t.account==='charity'&&isConfirmed(t);});
   // Year transactions only for category breakdown
   var cy=c.filter(function(t){var d=t.date||t.created||'';return d>=yearStart;});
   var hy=h.filter(function(t){var d=t.date||t.created||'';return d>=yearStart;});
@@ -2874,7 +2905,7 @@ function renderAnalysis(){
   var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
   var label=type==='month'?months[mo]+' '+yr:'Year '+yr;
   function filterTx(txList){return txList.filter(function(t){var d=new Date(t.date||t.created);return type==='month'?(d.getFullYear()===yr&&d.getMonth()===mo):(d.getFullYear()===yr);});}
-  var paidTx=filterTx(D.transactions.filter(function(t){return t.paid!==false;}));
+  var paidTx=filterTx(D.transactions.filter(isConfirmed));
   var unpaidTx=filterTx(D.transactions.filter(function(t){return t.paid===false;}));
   var allTx=filterTx(D.transactions);
 
@@ -3010,7 +3041,7 @@ function renderMeeting(){
   var openingBal=calcBalAtDate(periodStart);
   var closingBal=periodEnd?calcBalAtDate(periodEnd):calcBal();
   var periodTx=D.transactions.filter(function(t){
-    if(t.paid===false)return false;
+    if(!isConfirmed(t))return false;
     var d=t.date||t.created||'';
     if(d<periodStart)return false;
     if(periodEnd&&d>=periodEnd)return false;
