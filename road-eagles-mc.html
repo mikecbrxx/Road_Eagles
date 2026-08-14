@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.42</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.45</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -873,6 +873,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="fg"><label>Amount (&#3647;)</label><input type="number" id="et-amt" min="0"></div>
   <div class="fg"><label>Date</label><input type="date" id="et-date"></div>
   <div class="fg"><label>Member</label><select id="et-member"></select></div>
+  <div class="fg"><label>Event (optional)</label><select id="et-ev"><option value="">&#8212; No Event &#8212;</option></select></div>
   <div class="fg"><label>Notes</label><input type="text" id="et-notes" placeholder="Optional"></div>
   <button class="btn btn-gold" onclick="saveEditTab()">Save Changes</button>
   <button class="btn btn-out" onclick="closeM('mo-edittab')" style="margin-top:6px">Cancel</button>
@@ -1431,6 +1432,11 @@ function renderAll(){renderDash();renderLedger();renderMembers();renderMerch();r
 
 // Utils
 function thb(n){return'&#3647;'+(Math.round(n)||0).toLocaleString();}
+// Signed currency display for net/balance figures that can go negative
+// (e.g. a projected loss). Puts the minus sign before the symbol
+// ("-฿1,450") instead of thb()'s raw "฿-1,450", and never silently hides
+// the sign the way a bare Math.abs()+thb() combination would.
+function signedThb(n){return(Math.round(n)||0)<0?'-'+thb(Math.abs(n)):thb(n);}
 function nd(){return new Date().toISOString().slice(0,10);}
 function ni(){return new Date().toISOString();}
 function fd(s){if(!s)return'';try{return new Date(s).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}catch(e){return s;}}
@@ -1463,8 +1469,13 @@ function renderDashEvent(){
   if(!evId){block.style.display='none';none.style.display='';return;}
   block.style.display='';none.style.display='none';
   var txs=D.transactions.filter(function(t){return t.eventId===evId;});
+  // Unsettled tab sales tied to this event (e.g. merch sold "on tab") live
+  // in D.tabs, not D.transactions, until someone settles them — but they're
+  // real pending income for the event, so fold them in as unpaid income.
+  var evTabs=(D.tabs||[]).filter(function(tb){return tb.eventId===evId&&!tb.settled;});
+  var tabUn=evTabs.reduce(function(a,tb){return a+parseFloat(tb.amount||0);},0);
   var incPaid=txs.filter(function(t){return t.direction==='in'&&t.paid!==false;}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
-  var incUn=txs.filter(function(t){return t.direction==='in'&&t.paid===false;}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var incUn=txs.filter(function(t){return t.direction==='in'&&t.paid===false;}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0)+tabUn;
   var expPaid=txs.filter(function(t){return t.direction==='out'&&t.paid!==false;}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
   var expUn=txs.filter(function(t){return t.direction==='out'&&t.paid===false;}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
   var netAct=incPaid-expPaid;
@@ -1475,9 +1486,9 @@ function renderDashEvent(){
   document.getElementById('db-ev-exp-un').innerHTML=thb(expUn);
   var netActEl=document.getElementById('db-ev-net-act');
   var netProjEl=document.getElementById('db-ev-net-proj');
-  netActEl.innerHTML=thb(Math.abs(netAct));
+  netActEl.innerHTML=signedThb(netAct);
   netActEl.style.color=netAct>=0?'var(--grnl)':'var(--rl)';
-  netProjEl.innerHTML=thb(Math.abs(netProj));
+  netProjEl.innerHTML=signedThb(netProj);
   netProjEl.style.color=netProj>=0?'var(--grnl)':'var(--rl)';
 }
 
@@ -2028,6 +2039,7 @@ function saveSale(){
   const memberLabel=selMem?' – '+selMem.name:'';
   const desc=p.name+' – '+v.name+(sz?' ('+sz+')':'')+colDesc+' ×'+qty+' ('+_cu+memberLabel+')';
   adjStock(p.id,v.id,sz,col,qty,'sold');audit('SALE',desc+' '+thb(pr*qty));
+  var saleEvId=document.getElementById('sale-ev')?document.getElementById('sale-ev').value||'':'';
   if(_payMode==='tab'){
     // Tab sale — stock deducted, income NOT counted until paid
     const memberId=selMemId;
@@ -2035,8 +2047,7 @@ function saveSale(){
     if(!D.tabs)D.tabs=[];
     D.tabs.push({eventId:saleEvId,id:uid(),memberId,memberName:member?member.name:'Unknown',description:desc,amount:pr*qty,date:saleDate,created:ni(),enteredBy:CU.name,settled:false,settledDate:null,settledNotes:'',productId:p.id,variantId:v.id,qty,unitPrice:pr,customerType:_cu,colour:col,size:sz,notes});
   } else {
-    var saleEvId=document.getElementById('sale-ev')?document.getElementById('sale-ev').value||'':'';
-  D.transactions.push({id:uid(),account:'club',direction:'in',category:'merchandise',amount:pr*qty,description:desc,supplier:'',ref:'',date:saleDate,created:ni(),notes,enteredBy:CU.name,productId:p.id,variantId:v.id,qty,unitPrice:pr,customerType:_cu,colour:col,size:sz,eventId:saleEvId});
+    D.transactions.push({id:uid(),account:'club',direction:'in',category:'merchandise',amount:pr*qty,description:desc,supplier:'',ref:'',date:saleDate,created:ni(),notes,enteredBy:CU.name,productId:p.id,variantId:v.id,qty,unitPrice:pr,customerType:_cu,colour:col,size:sz,eventId:saleEvId});
   }
   save();closeM('mo-sale');renderAll();
 }
@@ -2370,9 +2381,17 @@ function renderEventReport(){
   var allTx=D.transactions.filter(function(t){return t.eventId===evId;})
     .sort(function(a,b){return (a.date||a.created||'').localeCompare(b.date||b.created||'');});
 
+  // Unsettled tab sales tied to this event live in D.tabs, not D.transactions,
+  // until settled — represent them here as pending/unpaid income rows so
+  // they're visible and counted, not silently missing until someone pays.
+  var evTabs=(D.tabs||[]).filter(function(tb){return tb.eventId===evId&&!tb.settled;});
+  var tabAsTx=evTabs.map(function(tb){
+    return{date:tb.date||tb.created,description:(tb.description||'Merch sale')+' (Tab — '+(tb.memberName||'member')+')',category:'merchandise',paid:false,amount:tb.amount,direction:'in'};
+  });
+
   // Split income/expense, paid/unpaid
   var incPaid=allTx.filter(function(t){return t.direction==='in'&&t.paid!==false;});
-  var incUnpaid=allTx.filter(function(t){return t.direction==='in'&&t.paid===false;});
+  var incUnpaid=allTx.filter(function(t){return t.direction==='in'&&t.paid===false;}).concat(tabAsTx);
   var expPaid=allTx.filter(function(t){return t.direction==='out'&&t.paid!==false;});
   var expUnpaid=allTx.filter(function(t){return t.direction==='out'&&t.paid===false;});
 
@@ -2424,7 +2443,7 @@ function renderEventReport(){
     +'<div style="font-size:16px;font-weight:800;color:var(--gl);margin-bottom:4px">'+htmlEsc(ev.name)+'</div>'
     +(ev.date?'<div style="font-size:11px;color:var(--muted)">&#128197; '+new Date(ev.date).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})+'</div>':'')
     +(ev.description?'<div style="font-size:11px;color:var(--muted);margin-top:3px">'+htmlEsc(ev.description)+'</div>':'')
-    +'<div style="font-size:10px;color:var(--dim);margin-top:4px">'+allTx.length+' transaction'+(allTx.length!==1?'s':'')+' linked to this event</div>'
+    +'<div style="font-size:10px;color:var(--dim);margin-top:4px">'+(allTx.length+evTabs.length)+' entr'+((allTx.length+evTabs.length)!==1?'ies':'y')+' linked to this event'+(evTabs.length?' (incl. '+evTabs.length+' unsettled tab sale'+(evTabs.length!==1?'s':'')+')':'')+'</div>'
     +'</div>';
 
   // Summary totals
@@ -2451,9 +2470,9 @@ function renderEventReport(){
     +'</tr>'
     +'<tr style="background:var(--sf2)">'
     +'<td style="padding:6px;font-size:12px;font-weight:700">Net Position</td>'
-    +'<td style="padding:6px;font-size:14px;font-weight:800;text-align:right;color:'+(netActual>=0?'var(--grnl)':'var(--rl)')+'">'+thb(netActual)+'</td>'
+    +'<td style="padding:6px;font-size:14px;font-weight:800;text-align:right;color:'+(netActual>=0?'var(--grnl)':'var(--rl)')+'">'+signedThb(netActual)+'</td>'
     +'<td style="padding:6px;font-size:11px;text-align:right;color:var(--dim)">incl. pending:</td>'
-    +'<td style="padding:6px;font-size:14px;font-weight:800;text-align:right;color:'+(netAll>=0?'var(--grnl)':'var(--rl)')+'">'+thb(netAll)+'</td>'
+    +'<td style="padding:6px;font-size:14px;font-weight:800;text-align:right;color:'+(netAll>=0?'var(--grnl)':'var(--rl)')+'">'+signedThb(netAll)+'</td>'
     +'</tr>'
     +'</tbody></table>'
     +'</div>';
@@ -2817,6 +2836,7 @@ function openEditTab(id){
   const memSel=document.getElementById('et-member');
   memSel.innerHTML=D.members.filter(m=>m.status!=='prospect'&&m.status!=='inactive')
     .map(m=>`<option value="${m.id}"${m.id===tab.memberId?' selected':''}>${m.name}</option>`).join('');
+  populateEvSel('et-ev',tab.eventId||'');
   openM('mo-edittab');
 }
 function saveEditTab(){
@@ -2829,6 +2849,7 @@ function saveEditTab(){
   tab.amount=parseFloat(document.getElementById('et-amt').value)||0;
   tab.date=document.getElementById('et-date').value;
   tab.notes=document.getElementById('et-notes').value.trim();
+  tab.eventId=document.getElementById('et-ev')?document.getElementById('et-ev').value||'':'';
   if(mem){tab.memberId=mem.id;tab.memberName=mem.name;}
   audit('TAB_EDIT','Edited tab: '+tab.description+' '+thb(tab.amount));
   save();closeM('mo-edittab');renderTabLedger();
