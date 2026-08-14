@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.45</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.47</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -1456,6 +1456,11 @@ function renderDashEventSel(){
   var _dPE=D.transactions.filter(isPendingEvent);
   var _dPEIn=_dPE.filter(function(t){return t.direction==='in';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
   var _dPEOut=_dPE.filter(function(t){return t.direction==='out';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  // Same gap as the two spots already fixed: unsettled tab sales tied to an
+  // event live in D.tabs, not D.transactions, so isPendingEvent alone misses
+  // them. Fold in every unsettled event-tied tab as pending income here too.
+  var _dPETabs=(D.tabs||[]).filter(function(tb){return tb.eventId&&!tb.settled;});
+  _dPEIn+=_dPETabs.reduce(function(a,tb){return a+parseFloat(tb.amount||0);},0);
   var _pn=document.getElementById('db-pend-ev-note');var _pt=document.getElementById('db-pend-ev-txt');
   if(_pn&&_pt){if(_dPEIn+_dPEOut>0){_pt.innerHTML='Pending event entries excluded from account totals: '+thb(_dPEIn)+' income / '+thb(_dPEOut)+' costs';_pn.style.display='';}else{_pn.style.display='none';}}
 }
@@ -2032,14 +2037,12 @@ function saveSale(){
   const col=stockCol(p,rawCol);
   const saleDate=document.getElementById('sale-date').value;
   const notes=document.getElementById('sale-notes').value.trim();
-  const colDesc=col?', '+col:'';
   const selMemId=document.getElementById('sale-tab-member').value;
   const selMem=selMemId?D.members.find(m=>m.id===selMemId):null;
   if(p.memberOnly&&!selMemId){alert('Please select the member purchasing this item.');return;}
-  const memberLabel=selMem?' – '+selMem.name:'';
-  const desc=p.name+' – '+v.name+(sz?' ('+sz+')':'')+colDesc+' ×'+qty+' ('+_cu+memberLabel+')';
-  adjStock(p.id,v.id,sz,col,qty,'sold');audit('SALE',desc+' '+thb(pr*qty));
   var saleEvId=document.getElementById('sale-ev')?document.getElementById('sale-ev').value||'':'';
+  const desc=buildSaleDesc({productName:p.name,variantName:v.name,size:sz,colour:col,qty:qty,customerType:_cu,memberName:selMem?selMem.name:'',eventId:saleEvId,notes:notes});
+  adjStock(p.id,v.id,sz,col,qty,'sold');audit('SALE',desc+' '+thb(pr*qty));
   if(_payMode==='tab'){
     // Tab sale — stock deducted, income NOT counted until paid
     const memberId=selMemId;
@@ -2047,7 +2050,7 @@ function saveSale(){
     if(!D.tabs)D.tabs=[];
     D.tabs.push({eventId:saleEvId,id:uid(),memberId,memberName:member?member.name:'Unknown',description:desc,amount:pr*qty,date:saleDate,created:ni(),enteredBy:CU.name,settled:false,settledDate:null,settledNotes:'',productId:p.id,variantId:v.id,qty,unitPrice:pr,customerType:_cu,colour:col,size:sz,notes});
   } else {
-    D.transactions.push({id:uid(),account:'club',direction:'in',category:'merchandise',amount:pr*qty,description:desc,supplier:'',ref:'',date:saleDate,created:ni(),notes,enteredBy:CU.name,productId:p.id,variantId:v.id,qty,unitPrice:pr,customerType:_cu,colour:col,size:sz,eventId:saleEvId});
+    D.transactions.push({id:uid(),account:'club',direction:'in',category:'merchandise',amount:pr*qty,description:desc,supplier:'',ref:'',date:saleDate,created:ni(),notes,enteredBy:CU.name,productId:p.id,variantId:v.id,qty,unitPrice:pr,customerType:_cu,colour:col,size:sz,eventId:saleEvId,responsibleMemberId:selMemId||'',responsibleMemberName:selMem?selMem.name:''});
   }
   save();closeM('mo-sale');renderAll();
 }
@@ -2506,6 +2509,23 @@ function renderEventReport(){
   el.innerHTML=h;
 }
 
+// Builds the description text for a merchandise sale (tab or paid). For
+// event-linked sales, shows a snippet of Notes instead of the responsible
+// member — far more useful for scanning "who bought what" in an event
+// context than the customer type / member tag used elsewhere. Reused both
+// at sale creation time and whenever a sale's event link is changed later,
+// so the title always matches its current event state.
+function buildSaleDesc(o){
+  var colDesc=o.colour?', '+o.colour:'';
+  var base=o.productName+' – '+o.variantName+(o.size?' ('+o.size+')':'')+colDesc+' ×'+o.qty;
+  if(o.eventId&&o.notes){
+    var snippet=o.notes.length>12?o.notes.slice(0,12)+'…':o.notes;
+    return base+' — '+snippet;
+  }
+  var memberLabel=o.memberName?' – '+o.memberName:'';
+  return base+' ('+o.customerType+memberLabel+')';
+}
+
 function htmlEsc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 function rMonth(){
@@ -2520,7 +2540,6 @@ function rMonth(){
     +'</div><div id="rm-body"></div>';
   // ---- original content below moved to renderMonthContent ----
 }
-  if(_mPEIn+_mPEOut>0)el.innerHTML='<div style="font-size:10px;color:var(--blul);margin:0 0 10px;background:rgba(52,152,219,.1);padding:6px 8px;border-radius:6px">&#127881; Pending event entries excluded this month: '+thb(_mPEIn)+' income / '+thb(_mPEOut)+' costs &mdash; see Event Report.</div>'+el.innerHTML;
 function renderMonthContent(){
   var el=document.getElementById('rm-body');if(!el)return;
   var mthSel=document.getElementById('rm-month');
@@ -2540,6 +2559,14 @@ function renderMonthContent(){
   var cb=calcBal();
   var _mPEIn=D.transactions.filter(function(t){return isPendingEvent(t)&&(function(){var d=new Date(t.date||t.created);return d.getMonth()===mth&&d.getFullYear()===yr;})()&&t.direction==='in';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
   var _mPEOut=D.transactions.filter(function(t){return isPendingEvent(t)&&(function(){var d=new Date(t.date||t.created);return d.getMonth()===mth&&d.getFullYear()===yr;})()&&t.direction==='out';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  // Unsettled event-tied tab sales dated within this month — same D.tabs gap
+  // as the other pending-event banners; tabs never appear in D.transactions.
+  _mPEIn+=(D.tabs||[]).filter(function(tb){
+    if(!tb.eventId||tb.settled)return false;
+    var d=new Date(tb.date||tb.created);
+    return d.getMonth()===mth&&d.getFullYear()===yr;
+  }).reduce(function(a,tb){return a+parseFloat(tb.amount||0);},0);
+  var _mPENote=_mPEIn+_mPEOut>0?'<div style="font-size:10px;color:var(--blul);margin:0 0 10px;background:rgba(52,152,219,.1);padding:6px 8px;border-radius:6px">&#127881; Pending event entries excluded this month: '+thb(_mPEIn)+' income / '+thb(_mPEOut)+' costs &mdash; see Event Report.</div>':'';
   // This month's paid transactions
   var mt=D.transactions.filter(function(t){if(!isConfirmed(t))return false;var d=new Date(t.date||t.created);return d.getMonth()===mth&&d.getFullYear()===yr;});
   var mc=mt.filter(function(t){return t.account==='club';});
@@ -2550,6 +2577,7 @@ function renderMonthContent(){
   var pendingEvA=D.transactions.filter(isPendingEvent);
   var pendingEvAIn=pendingEvA.filter(function(t){return t.direction==='in';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
   var pendingEvAOut=pendingEvA.filter(function(t){return t.direction==='out';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  pendingEvAIn+=(D.tabs||[]).filter(function(tb){return tb.eventId&&!tb.settled;}).reduce(function(a,tb){return a+parseFloat(tb.amount||0);},0);
   var pendingEvANote=pendingEvAIn+pendingEvAOut>0?'<div style="font-size:10px;color:var(--blul);margin:4px 0 8px;background:rgba(52,152,219,.1);padding:6px 8px;border-radius:6px">&#127881; Pending event entries excluded: '+thb(pendingEvAIn)+' income / '+thb(pendingEvAOut)+' costs &mdash; see Event Report.</div>':'';
   var allUnpaid=D.transactions.filter(function(t){return t.paid===false&&!isPendingEvent(t);});
   var tabTotal=(D.tabs||[]).filter(function(t){return !t.settled;}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
@@ -2562,6 +2590,7 @@ function renderMonthContent(){
   var committedNote='<div style="font-size:10px;color:var(--dim);margin:4px 0 8px;font-style:italic">&#9432; Committed items are not included in the paid totals above.</div>';
   var divider='<div style="border-top:1px solid var(--bd);margin:6px 0"></div>';
   el.innerHTML='<div style="font-size:12px;color:var(--muted);margin-bottom:12px">'+monthName+'</div>'
+    +_mPENote
     // ── Club Account ──
     +'<div class="balbar"><h3>&#128693;&#65039; Club Account</h3>'
     +br('Opening Balance',thb(ob.club),'var(--gold)')
@@ -2843,6 +2872,7 @@ function saveEditTab(){
   const id=document.getElementById('et-id').value;
   const tab=(D.tabs||[]).find(t=>t.id===id);
   if(!tab)return;
+  const beforeEventId=tab.eventId||'';
   const memId=document.getElementById('et-member').value;
   const mem=D.members.find(m=>m.id===memId);
   tab.description=document.getElementById('et-desc').value.trim();
@@ -2851,6 +2881,16 @@ function saveEditTab(){
   tab.notes=document.getElementById('et-notes').value.trim();
   tab.eventId=document.getElementById('et-ev')?document.getElementById('et-ev').value||'':'';
   if(mem){tab.memberId=mem.id;tab.memberName=mem.name;}
+  // Same regeneration as saveTxEdit(): if this tab's event link just
+  // changed and it's a genuine merchandise sale (has productId), refresh
+  // the title so it matches the current event state.
+  if(tab.productId&&beforeEventId!==tab.eventId){
+    var p=D.products.find(function(x){return x.id===tab.productId;});
+    var v=p&&p.variants?p.variants.find(function(x){return x.id===tab.variantId;}):null;
+    if(p&&v){
+      tab.description=buildSaleDesc({productName:p.name,variantName:v.name,size:tab.size,colour:tab.colour,qty:tab.qty,customerType:tab.customerType,memberName:tab.memberName||'',eventId:tab.eventId,notes:tab.notes});
+    }
+  }
   audit('TAB_EDIT','Edited tab: '+tab.description+' '+thb(tab.amount));
   save();closeM('mo-edittab');renderTabLedger();
 }
@@ -3070,6 +3110,11 @@ function renderMeeting(){
   });
   var _pPEIn=D.transactions.filter(function(t){if(!isPendingEvent(t))return false;var d=t.date||t.created||'';return d>=periodStart&&(!periodEnd||d<periodEnd)&&t.direction==='in';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
   var _pPEOut=D.transactions.filter(function(t){if(!isPendingEvent(t))return false;var d=t.date||t.created||'';return d>=periodStart&&(!periodEnd||d<periodEnd)&&t.direction==='out';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  _pPEIn+=(D.tabs||[]).filter(function(tb){
+    if(!tb.eventId||tb.settled)return false;
+    var d=tb.date||tb.created||'';
+    return d>=periodStart&&(!periodEnd||d<periodEnd);
+  }).reduce(function(a,tb){return a+parseFloat(tb.amount||0);},0);
   var pIn=periodTx.filter(function(t){return t.direction==='in';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
   var pOut=periodTx.filter(function(t){return t.direction==='out';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
   var unpaidFees=D.members.filter(function(m){return m.status==='unpaid';});
@@ -3404,6 +3449,17 @@ function saveTxEdit(){
   tx.paid=document.getElementById('txe-pay-paid').className.includes('tin');
   var txeEvSel=document.getElementById('txe-ev');
   tx.eventId=txeEvSel?txeEvSel.value||'':'';
+  // If this is a merchandise-sale transaction (has productId) and its event
+  // link just changed, regenerate the title from its stored sale fields so
+  // it always matches its current event state (Notes snippet vs member tag)
+  // rather than showing a stale format from before the change.
+  if(tx.productId&&before.eventId!==tx.eventId){
+    var p=D.products.find(function(x){return x.id===tx.productId;});
+    var v=p&&p.variants?p.variants.find(function(x){return x.id===tx.variantId;}):null;
+    if(p&&v){
+      tx.description=buildSaleDesc({productName:p.name,variantName:v.name,size:tx.size,colour:tx.colour,qty:tx.qty,customerType:tx.customerType,memberName:tx.responsibleMemberName||'',eventId:tx.eventId,notes:tx.notes});
+    }
+  }
   audit('TRANSACTION_EDIT','Edited: '+tx.description+' '+thb(tx.amount),before,{amount:tx.amount,paid:tx.paid,eventId:tx.eventId||''});
   save();closeM('mo-tx-edit');renderAll();
 }
