@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.48</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.49</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -1955,8 +1955,10 @@ function selAcc(a){_ta=a;document.getElementById('tacc-c').className='tgb'+(a===
 function selDir(d){_td=d;document.getElementById('tdir-i').className='tgb'+(d==='in'?' tin':'');document.getElementById('tdir-o').className='tgb'+(d==='out'?' tout':'');updateCats();}
 function updateCats(){const cats=_td==='in'?CATS_I:CATS_O;document.getElementById('tx-cat').innerHTML=cats.map(c=>`<option value="${c}">${CM[c]||c}</option>`).join('');}
 function saveTx(){
-  const amt=parseFloat(document.getElementById('tx-amt').value)||0;
-  if(!amt){alert('Please enter an amount');return;}
+  const amtRaw=document.getElementById('tx-amt').value;
+  if(amtRaw.trim()===''){alert('Please enter an amount (0 is allowed, e.g. for a no-cost/in-kind donation)');return;}
+  const amt=parseFloat(amtRaw);
+  if(isNaN(amt)||amt<0){alert('Please enter a valid amount (0 or more)');return;}
   const sup=document.getElementById('tx-sup').value.trim();
   if(sup&&!D.suppliers.find(function(x){return(x.name||x)===sup;}))D.suppliers.push({id:uid(),name:sup,phone:'',email:'',website:'',contact:'',address:''});
   const isPaid=_txPay!=='unpaid';
