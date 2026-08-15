@@ -13,16 +13,17 @@ Single-file HTML application with no server-side dependencies. All data is store
 - **Members** — member management, role assignment, annual fee tracking and reset (full fee regardless of join date)
 - **Merchandise** — catalogue with member/visitor pricing, stock levels, colour/size variants
 - **Tab Ledger** — open merch tabs (edit/delete with stock restore), unpaid transactions, PO outstanding balances
-- **Purchase Orders** — full lifecycle with multi-line-item support, production cost estimates, payments, assembly groups (BOM), status override for admin
-- **Events** — event management with income/expense tracking
+- **Purchase Orders** — full lifecycle with multi-line-item support, production cost estimates, payments, assembly groups (BOM), event tagging, status override for admin
+- **Events** — event management with income/expense tracking; each event has an Open/Closed status — while Open, everything tagged to it (paid or unpaid) is tracked but held out of Club/Charity account totals until the event is marked Closed
 - **Suppliers** — full supplier records
 - **Reports**
   - Monthly Statement (month/year selector, opening/closing balances, category subtotals)
   - Annual Summary (opening/closing balances, category subtotals)
   - Club Meeting Report (by month, full year, or custom date range; opening/closing balances; period activity summary)
   - Membership, Merchandise Sales, Stock, Stock Value
-  - Donations (split by Club and Charity account)
-  - Tab Debts, Purchase Ledger (with committed PO balances), Cost of Goods, Analysis, Audit Trail
+  - Donations (split by Club and Charity account, and by confirmed vs pledged/pending)
+  - Tab Debts, Purchase Ledger (with committed PO balances), Cost of Goods, Analysis (Actual / Committed / Combined views), Audit Trail
+  - Monthly Statement, Annual Summary and Club Meeting Report each show a note for any pending event income/expenses excluded from their totals
   - All reports export to PDF with period label included
 - **Categories & Config** — income/expense categories, product categories, event types, sizes, colours, roles, assembly groups
 - **Backup & Restore** — JSON export/import with configurable filename prefix and reminder system
@@ -61,7 +62,7 @@ If the app shows a connection error on startup, check your internet connection a
 ## File Structure
 
 ```
-road-eagles-mc-final.html   — Live production app
+road-eagles-mc.html         — Live production app (committed without a "-final" suffix)
 remc-test.html              — Test system (separate Supabase database)
 README.md                   — This file
 ```
@@ -101,6 +102,7 @@ SELECT * FROM pg_policies WHERE tablename = 'club_data';
 - Configure filename prefix (default: `RE-Backup`) — saved as `<prefix>-YYYYMMDD-HH:MM:SS.json`
 - Set reminder interval in days (0 = disabled). Tap **Save & Sync** to push both settings to all devices
 - Restore accepts any valid backup JSON file regardless of filename
+- Opening Balances (More → Settings) are hidden by default and require re-entering your PIN to view or edit, since they underpin every balance and report in the app
 
 ## Purchase Orders
 
@@ -110,6 +112,17 @@ POs support multiple stock line items per order — useful for ordering multiple
 - Production costs are used to calculate an **estimated total** which can be applied with one tap
 - Full lifecycle: Draft → Ordered → Part Paid → Part Rcvd → Received
 - Assembly Groups (BOM) link multiple POs to one finished product — stock only added on assembly, not on individual component receipt
+- Optionally tag a PO to an event
+
+## Events & Account Totals
+
+Each event has an **Open / Closed** status, set on the event modal (defaults to Open for new events).
+
+- While an event is **Open**, everything tagged to it — ledger transactions, purchase orders, and merchandise sales (paid or unpaid) — is fully tracked and visible in the Event Report and Home screen event card, but is deliberately **excluded from Club/Charity account totals** (Dashboard balance, Monthly Statement, Annual Summary, Club Meeting Report, Analysis Report).
+- Marking an event **Closed** brings everything tagged to it into the normal account totals immediately. Re-opening reverses this.
+- A blue note ("Pending event entries excluded…") appears on the Dashboard and on Monthly/Annual/Meeting reports whenever there are open-event amounts being held back, so the gap between what's shown and what's confirmed is never silent.
+- Debt-tracking views — **Tab Net Position**, **Tab Debts Report**, and the **Purchase Ledger**'s committed PO balances — intentionally do **not** apply this exclusion, since they track real amounts still owed regardless of event status.
+- Merchandise sales tagged to an event show a snippet of the sale's **Notes** field in place of the usual member/customer tag (e.g. "Table – Standard ×1 — John & Sarah") — set Notes to whoever the sale is actually for. Non-event sales are unaffected.
 
 ## Key Business Rules
 
@@ -117,12 +130,19 @@ POs support multiple stock line items per order — useful for ordering multiple
 - **Assembly group POs**: Stock is NOT added when individual components are received — only added via the Assemble step once all components arrive
 - **PO status**: A PO with outstanding balance after stock receipt shows as "Part Rcvd" and remains visible in the Tab Ledger until fully paid
 - **Tab deletion**: Deleting a tab entry restores stock levels. No financial transaction is created or reversed (tabs are unpaid by definition)
-- **Donations**: Split by account — Club donations and Charity donations are reported separately
+- **Donations**: Split by account — Club donations and Charity donations are reported separately, and each is further split into confirmed (paid, not tied to an open event) vs pledged/pending
+- **Events**: See "Events & Account Totals" above — open-event amounts are excluded from account totals regardless of paid status, until the event is closed
 
 ## Version History
 
 | Version | Notes |
 |---------|-------|
+| v3.48 | Batch fix: Annual Summary and Club Meeting Report gained pending-event banners and correct exclusions; Donation Report rebuilt to split confirmed vs pledged/pending; Analysis Report fixed so paid transactions tied to an open event no longer vanish from all views; Settings screen cleanup (removed redundant Categories/Stock/Suppliers shortcuts, Opening Balances hidden behind PIN re-entry) |
+| v3.47 | Event-linked merchandise sales show a Notes snippet instead of the member tag; sale titles auto-regenerate if a sale's event link is changed later |
+| v3.42–v3.46 | Events gained an Open/Closed status; open-event income/expenses (paid or unpaid) excluded from account totals until closed; fixed a stale-cached top-level script bug that could silently break app initialisation; fixed unsettled tab sales not counting toward event totals; fixed a lost event-tag bug on unpaid sales |
+| v3.34–v3.41 | "isConfirmed()" helper introduced to centralise the paid/unpaid check used across balances and reports (pure refactor, no behaviour change); Purchase Orders gained an event field; fixed "View PO" button failing due to a temporal-dead-zone bug; added a dedicated "Purchase Orders" entry to the More menu |
+| v3.33 | Pending event transactions excluded from Monthly Statement, Annual Summary and Meeting Report; dashboard indicator for pending event amounts; resetStockKey function fix |
+| v3.29–v3.32 | Event field added throughout (transactions, sales, POs, tab settlement); Event Report with itemised income/expense; dashboard event overview block |
 | v3.25 | Multi-line-item POs, production cost estimates, baseline v24 |
 | v3.22 | Meeting report activity summary grouped by product |
 | v3.19 | Remove pro-rata fees, PDF period label fix, baseline v21 |

@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.47</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.48</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -446,27 +446,21 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       <div id="admin-settings" style="display:none">
         <div style="background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:10px">
           <div class="sect-lbl">Opening Balances</div>
-          <div class="fg"><label>Club Account (&#3647;)</label><input type="number" id="set-cb" placeholder="0"></div>
-          <div class="fg"><label>Charity Account (&#3647;)</label><input type="number" id="set-hb" placeholder="0"></div>
-          <button class="btn btn-gold" onclick="saveBalances()">Save Balances</button>
+          <p style="font-size:11px;color:var(--muted);margin-bottom:8px">These underpin every balance and report in the app, so they're hidden by default. Re-enter your PIN to view or edit.</p>
+          <button class="btn btn-out" id="ob-reveal-btn" onclick="revealOpeningBalances()">&#128274; Show / Edit Opening Balances</button>
+          <div id="ob-fields" style="display:none;margin-top:10px">
+            <div class="fg"><label>Club Account (&#3647;)</label><input type="number" id="set-cb" placeholder="0"></div>
+            <div class="fg"><label>Charity Account (&#3647;)</label><input type="number" id="set-hb" placeholder="0"></div>
+            <button class="btn btn-gold" onclick="saveBalances()">Save Balances</button>
+          </div>
         </div>
         <div style="background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:10px">
           <div class="sect-lbl">Annual Membership Fee</div>
           <div class="fg"><label>Fee Amount (&#3647;)</label><input type="number" id="set-fee" value="2000"></div>
           <button class="btn btn-gold" onclick="saveFee()">Save Fee</button>
         </div>
-        <div style="background:var(--sf2);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:10px">
-          <div class="sect-lbl">Categories &amp; Config</div>
-          <p style="font-size:11px;color:var(--muted);margin-bottom:8px">Manage all categories, event types, sizes and colours.</p>
-          <button class="btn btn-gold" onclick="goTo('config')">&#9881;&#65039; Open Categories &amp; Config</button>
-        </div>
         <div style="background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:10px">
-          <div class="sect-lbl">Stock Levels</div>
-          <p style="font-size:11px;color:var(--muted);margin-bottom:8px">View and edit actual stock levels for all products.</p>
-          <button class="btn btn-gold" onclick="goTo('stockmgr')">&#128085;&#65039; Open Stock Levels</button>
-        </div>
-        <div style="background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:10px">
-          <div class="sect-lbl">Low Stock-lbl">Low Stock Alert Threshold</div>
+          <div class="sect-lbl">Low Stock Alert Threshold</div>
           <p style="font-size:11px;color:var(--muted);margin-bottom:8px">Items at or below this quantity show a Low Stock warning on the dashboard and Merch screen.</p>
           <div class="fg"><label>Threshold (units)</label><input type="number" id="set-lst" value="5" min="0"></div>
           <button class="btn btn-gold" onclick="saveLST()">Save Threshold</button>
@@ -476,13 +470,6 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
           <p style="font-size:11px;color:var(--muted);margin-bottom:8px">Only users listed here can log into the app. Regular club members are managed separately in the Members screen and do not need app access.</p>
           <div id="user-list-s"></div>
           <button class="btn btn-out" style="margin-top:8px" onclick="openAddUserModal()">+ Add User</button>
-        </div>
-        <div style="background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:10px">
-          <div class="sect-lbl">Suppliers</div>
-          <div id="sup-list-s"></div>
-          <div style="display:flex;gap:8px;margin-top:8px">
-            <button onclick="openAddSupplier()" class="btn btn-gold" style="width:100%">+ Add New Supplier</button>
-          </div>
         </div>
       </div>
       <div class="sn">
@@ -2218,6 +2205,14 @@ function resetStockKey(pid,vid,sz,col){
 }
 function saveInitStock(){save();alert('Initial stock saved!');renderStock();renderDash();}
 function saveLST(){D.lowStockThreshold=parseInt(document.getElementById('set-lst').value)||5;audit('SETTINGS','Low stock threshold changed to '+D.lowStockThreshold);save();alert('Threshold saved!');renderStock();renderDash();}
+function revealOpeningBalances(){
+  var entered=prompt('Re-enter your PIN to view/edit Opening Balances:');
+  if(entered===null)return;
+  if(!CU||entered!==CU.pin){alert('Incorrect PIN.');return;}
+  var f=document.getElementById('ob-fields'),b=document.getElementById('ob-reveal-btn');
+  if(f)f.style.display='';
+  if(b)b.style.display='none';
+}
 function saveBalances(){const ob=D.openingClub,oh=D.openingCharity;D.openingClub=parseFloat(document.getElementById('set-cb').value)||0;D.openingCharity=parseFloat(document.getElementById('set-hb').value)||0;audit('SETTINGS','Opening balances changed',{club:ob,charity:oh},{club:D.openingClub,charity:D.openingCharity});save();renderDash();alert('Balances saved!');}
 function saveProductCategories(){
   var el=document.getElementById('set-prod-cats');
@@ -2649,7 +2644,7 @@ function rAnnual(){
   var hy=h.filter(function(t){var d=t.date||t.created||'';return d>=yearStart;});
   var cyIn=sumio(cy).i,cyOut=sumio(cy).o;
   var hyIn=sumio(hy).i,hyOut=sumio(hy).o;
-  var allUnpaid=D.transactions.filter(function(t){return t.paid===false;});
+  var allUnpaid=D.transactions.filter(function(t){return t.paid===false&&!isPendingEvent(t);});
   var tabTotal=(D.tabs||[]).filter(function(t){return !t.settled;}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
   var poTotal=(D.purchaseOrders||[]).filter(function(po){return po.status!=='received'&&po.status!=='draft'&&poBalance(po)>0;}).reduce(function(a,po){return a+poBalance(po);},0);
   var feesOwed=allUnpaid.filter(function(t){return t.category==='membership_fee'&&t.direction==='in';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
@@ -2657,6 +2652,12 @@ function rAnnual(){
   var unpaidOut=allUnpaid.filter(function(t){return t.direction==='out';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
   var totalDueIn=feesOwed+tabTotal+unpaidIn;
   var totalDueOut=unpaidOut+poTotal;
+  // Pending event entries for this year — same pattern as the month-scoped
+  // note on the Monthly Statement, scoped to yearStart onward instead.
+  var _yPEIn=D.transactions.filter(function(t){return isPendingEvent(t)&&(t.date||t.created||'')>=yearStart&&t.direction==='in';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var _yPEOut=D.transactions.filter(function(t){return isPendingEvent(t)&&(t.date||t.created||'')>=yearStart&&t.direction==='out';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  _yPEIn+=(D.tabs||[]).filter(function(tb){return tb.eventId&&!tb.settled&&(tb.date||tb.created||'')>=yearStart;}).reduce(function(a,tb){return a+parseFloat(tb.amount||0);},0);
+  var _yPENote=_yPEIn+_yPEOut>0?'<div style="font-size:10px;color:var(--blul);margin:0 0 10px;background:rgba(52,152,219,.1);padding:6px 8px;border-radius:6px">&#127881; Pending event entries excluded this year: '+thb(_yPEIn)+' income / '+thb(_yPEOut)+' costs &mdash; see Event Report.</div>':'';
   var committedNote='<div style="font-size:10px;color:var(--dim);margin:4px 0 8px;font-style:italic">&#9432; Committed items are not included in the paid balances above.</div>';
   var divider='<div style="border-top:1px solid var(--bd);margin:6px 0"></div>';
   return '<div style="font-size:12px;color:var(--muted);margin-bottom:12px">Year '+yr+'</div>'
@@ -2691,7 +2692,7 @@ function rAnnual(){
     +br('Closing Balance',thb(cb.charity),'var(--gold)')
     +'</div>'
     // ── Committed ──
-    +'<div class="balbar"><h3>&#128203; Committed &amp; Outstanding</h3>'+committedNote
+    +'<div class="balbar"><h3>&#128203; Committed &amp; Outstanding</h3>'+_yPENote+committedNote
     +'<div style="font-size:11px;font-weight:700;color:var(--grnl);padding:2px 0">Due to the Club</div>'
     +br('Unpaid Fees',thb(feesOwed),'var(--grnl)')
     +br('Merch Tabs',thb(tabTotal),'var(--grnl)')
@@ -2739,35 +2740,35 @@ function rDon(){
   var outCats=['donation_out','charity_cash','charity_goods','club_donation_out'];
   var allIn=D.transactions.filter(function(t){return inCats.includes(t.category);});
   var allOut=D.transactions.filter(function(t){return outCats.includes(t.category);});
-  // Split income by account
   var clubIn=allIn.filter(function(t){return t.account==='club';});
   var charIn=allIn.filter(function(t){return t.account==='charity';});
-  var clubInTot=clubIn.reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
-  var charInTot=charIn.reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
-  var clubOutTx=allOut.filter(function(t){return t.account==='club';});
-  var charOutTx=allOut.filter(function(t){return t.account==='charity';});
-  var clubOutTot=clubOutTx.reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
-  var charOutTot=charOutTx.reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
-  function txRows(txs){return txs.length?txs.map(function(t){return'<div class="brow"><span class="blbl" style="font-size:11px">'+fd(t.date||t.created)+' &bull; '+(t.description||CM[t.category]||t.category)+'</span><span style="color:var(--rl)">'+thb(t.amount)+'</span></div>';}).join(''):'<div style="color:var(--dim);font-size:12px;padding:6px 0">None</div>';}
-  var h='';
-  if(clubIn.length||clubOutTx.length){
-    h+='<div class="balbar"><h3>&#128693;&#65039; Club Donations</h3>'
-      +(clubInTot>0?br('Received',thb(clubInTot),'var(--grnl)'):'')
-      +(clubOutTot>0?br('Given Out',thb(clubOutTot),'var(--rl)'):'')
-      +br('Net',thb(clubInTot-clubOutTot),(clubInTot-clubOutTot)>=0?'var(--grnl)':'var(--rl)')
-      +(clubIn.length?'<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;margin:6px 0 2px">Received</div>'+clubIn.map(function(t){return'<div class="brow"><span class="blbl" style="font-size:11px">'+fd(t.date||t.created)+' &bull; '+(t.description||CM[t.category])+'</span><span style="color:var(--grnl)">'+thb(t.amount)+'</span></div>';}).join(''):'')
-      +(clubOutTx.length?'<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;margin:6px 0 2px">Paid Out</div>'+txRows(clubOutTx):'')
-      +'</div>';
+  var clubOut=allOut.filter(function(t){return t.account==='club';});
+  var charOut=allOut.filter(function(t){return t.account==='charity';});
+  // Split each into confirmed (paid, not tied to an open event) vs pending
+  // (unpaid, or tied to an event that isn't closed yet) — previously this
+  // report ignored paid status entirely and showed everything as "Received"
+  // regardless of whether the money had actually changed hands.
+  function split(txs){return{confirmed:txs.filter(isConfirmed),pending:txs.filter(function(t){return !isConfirmed(t);})};}
+  function sumAmt(txs){return txs.reduce(function(a,t){return a+parseFloat(t.amount||0);},0);}
+  function txRows(txs,color){return txs.length?txs.map(function(t){return'<div class="brow"><span class="blbl" style="font-size:11px">'+fd(t.date||t.created)+' &bull; '+(t.description||CM[t.category]||t.category)+'</span><span style="color:'+color+'">'+thb(t.amount)+'</span></div>';}).join(''):'<div style="color:var(--dim);font-size:12px;padding:6px 0">None</div>';}
+  function accountBlock(title,icon,inS,outS){
+    var inTot=sumAmt(inS.confirmed),outTot=sumAmt(outS.confirmed);
+    var pendInTot=sumAmt(inS.pending),pendOutTot=sumAmt(outS.pending);
+    if(!inS.confirmed.length&&!outS.confirmed.length&&!pendInTot&&!pendOutTot)return'';
+    var blk='<div class="balbar"><h3>'+icon+' '+title+'</h3>'
+      +(inTot>0?br('Received',thb(inTot),'var(--grnl)'):'')
+      +(outTot>0?br('Given Out',thb(outTot),'var(--rl)'):'')
+      +br('Net',thb(inTot-outTot),(inTot-outTot)>=0?'var(--grnl)':'var(--rl)')
+      +(inS.confirmed.length?'<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;margin:6px 0 2px">Received</div>'+txRows(inS.confirmed,'var(--grnl)'):'')
+      +(outS.confirmed.length?'<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;margin:6px 0 2px">Given Out</div>'+txRows(outS.confirmed,'var(--rl)'):'');
+    if(pendInTot+pendOutTot>0){
+      blk+='<div style="font-size:10px;color:var(--blul);margin:8px 0 2px;background:rgba(52,152,219,.1);padding:6px 8px;border-radius:6px">&#8987; Not yet received/given (unpaid, or tied to an open event): '+thb(pendInTot)+' in / '+thb(pendOutTot)+' out</div>'
+        +(inS.pending.length?'<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;margin:6px 0 2px">Pledged / Pending In</div>'+txRows(inS.pending,'var(--warn)'):'')
+        +(outS.pending.length?'<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;margin:6px 0 2px">Committed / Pending Out</div>'+txRows(outS.pending,'var(--warn)'):'');
+    }
+    return blk+'</div>';
   }
-  if(charIn.length||charOutTx.length){
-    h+='<div class="balbar"><h3>&#10084;&#65039; Charity Donations</h3>'
-      +(charInTot>0?br('Received',thb(charInTot),'var(--grnl)'):'')
-      +(charOutTot>0?br('Given Out',thb(charOutTot),'var(--rl)'):'')
-      +br('Net',thb(charInTot-charOutTot),(charInTot-charOutTot)>=0?'var(--grnl)':'var(--rl)')
-      +(charIn.length?'<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;margin:6px 0 2px">Received</div>'+charIn.map(function(t){return'<div class="brow"><span class="blbl" style="font-size:11px">'+fd(t.date||t.created)+' &bull; '+(t.description||CM[t.category])+'</span><span style="color:var(--grnl)">'+thb(t.amount)+'</span></div>';}).join(''):'')
-      +(charOutTx.length?'<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;margin:6px 0 2px">Paid Out</div>'+txRows(charOutTx):'')
-      +'</div>';
-  }
+  var h=accountBlock('Club Donations','&#128693;&#65039;',split(clubIn),split(clubOut))+accountBlock('Charity Donations','&#10084;&#65039;',split(charIn),split(charOut));
   if(!h)h='<div class="empty"><div class="ei">&#129309;</div>No donation records yet</div>';
   return h;
 }
@@ -2972,7 +2973,11 @@ function renderAnalysis(){
 
   // Build committedTx always - needed for both committed and combined views
   // ALL outstanding items regardless of date filter
-  var allUnpaid=D.transactions.filter(function(t){return t.paid===false;});
+  // Use "not confirmed" rather than just "unpaid" — a PAID transaction tied
+  // to an open event is excluded from paidTx (via isConfirmed above) but is
+  // still real money not yet counted in totals, so it belongs here too.
+  // Otherwise it would vanish from every view (Actual/Committed/Combined).
+  var allUnpaid=D.transactions.filter(function(t){return !isConfirmed(t);});
   var tabTx=(D.tabs||[]).filter(function(t){return !t.settled;}).map(function(t){
     return{direction:'in',category:'merchandise',amount:parseFloat(t.amount||0)};
   });
@@ -3124,9 +3129,15 @@ function renderMeeting(){
     ?feeTabTx.reduce(function(a,t){return a+parseFloat(t.amount||0);},0)
     :unpaidFees.reduce(function(a,m){return a+calcFee(m.joinDate);},0);
   var openTabs=(D.tabs||[]).filter(function(t){return !t.settled;});
-  var unpaidTx=D.transactions.filter(function(t){return t.paid===false;});
+  var unpaidTx=D.transactions.filter(function(t){return t.paid===false&&!isPendingEvent(t);});
   var tabTotal=openTabs.reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
   var unpaidTxTotal=unpaidTx.reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  // Pending event entries (same all-time pattern as Monthly/Annual banners)
+  var _mePE=D.transactions.filter(isPendingEvent);
+  var _mePEIn=_mePE.filter(function(t){return t.direction==='in';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var _mePEOut=_mePE.filter(function(t){return t.direction==='out';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  _mePEIn+=(D.tabs||[]).filter(function(tb){return tb.eventId&&!tb.settled;}).reduce(function(a,tb){return a+parseFloat(tb.amount||0);},0);
+  var _mePENote=_mePEIn+_mePEOut>0?'<div style="font-size:10px;color:var(--blul);margin:0 0 8px;background:rgba(52,152,219,.1);padding:6px 8px;border-radius:6px">&#127881; Pending event entries excluded: '+thb(_mePEIn)+' income / '+thb(_mePEOut)+' costs &mdash; see Event Report.</div>':'';
   var stockRows=[];
   D.products.filter(function(p){return !p.archived;}).forEach(function(p){
     var total=0;
@@ -3234,7 +3245,7 @@ function renderMeeting(){
       var dueOutTotal=dueOut.reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
       var poOutstanding=(D.purchaseOrders||[]).filter(function(po){return po.status!=='received'&&po.status!=='draft'&&poBalance(po)>0;}).reduce(function(a,po){return a+poBalance(po);},0);
       var totalDueOut=dueOutTotal+poOutstanding;
-      return '<div class="balbar"><h3>&#128203; Committed &amp; Outstanding</h3>'
+      return '<div class="balbar"><h3>&#128203; Committed &amp; Outstanding</h3>'+_mePENote
         +'<div style="font-size:10px;color:var(--dim);margin-bottom:8px;font-style:italic">&#9432; These items are not included in the account balances or period totals above &mdash; they represent money yet to be received or paid.</div>'
         +'<div style="font-size:11px;font-weight:700;color:var(--grnl);text-transform:uppercase;letter-spacing:1px;padding:4px 0 2px">Due to the Club</div>'
         +br('Unpaid Member Fees ('+unpaidFees.length+')',thb(feesTotal),'var(--grnl)')
