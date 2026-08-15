@@ -165,6 +165,10 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   #print-content .txm{font-size:7pt!important}
   #print-content .atag{font-size:6pt!important}
   #print-content .empty{padding:4px!important;font-size:8pt!important}
+  #print-content table{font-size:7pt!important}
+  #print-content th{padding:2px 4px!important;font-size:6pt!important}
+  #print-content td{padding:2px 4px!important;font-size:7pt!important}
+  #print-content td div{font-size:6pt!important;margin-top:0!important}
   #print-content *{line-height:1.3!important}
 }
 
@@ -190,7 +194,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.49</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.50</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -2412,12 +2416,19 @@ function renderEventReport(){
       ?'<span style="color:var(--warn);font-size:10px">Unpaid</span>'
       :'<span style="color:var(--grnl);font-size:10px">Paid</span>';
     var col=dir==='in'?'var(--grnl)':'var(--rl)';
+    // Compact identifying sub-line — who/what this entry actually relates to,
+    // without adding extra table columns that would widen the printed page.
+    var idBits=[];
+    if(t.supplier)idBits.push('&#127978;&#65039; '+htmlEsc(t.supplier));
+    if(t.responsibleMemberName)idBits.push('&#128100; '+htmlEsc(t.responsibleMemberName));
+    if(t.ref)idBits.push('&#128196; '+htmlEsc(t.ref));
+    var idLine=idBits.length?'<div style="font-size:9px;color:var(--dim);margin-top:1px">'+idBits.join(' &bull; ')+'</div>':'';
     return '<tr>'
-      +'<td style="padding:5px 6px;border-bottom:1px solid var(--bd);font-size:11px;color:var(--muted)">'+dateStr+'</td>'
-      +'<td style="padding:5px 6px;border-bottom:1px solid var(--bd);font-size:12px">'+htmlEsc(t.description||'')+'</td>'
-      +'<td style="padding:5px 6px;border-bottom:1px solid var(--bd);font-size:11px;color:var(--muted)">'+htmlEsc(t.category||'')+'</td>'
-      +'<td style="padding:5px 6px;border-bottom:1px solid var(--bd);font-size:11px;text-align:center">'+paidStr+'</td>'
-      +'<td style="padding:5px 6px;border-bottom:1px solid var(--bd);font-size:12px;font-weight:700;text-align:right;color:'+col+'">'+thb(t.amount)+'</td>'
+      +'<td style="padding:5px 6px;border-bottom:1px solid var(--bd);font-size:11px;color:var(--muted);vertical-align:top">'+dateStr+'</td>'
+      +'<td style="padding:5px 6px;border-bottom:1px solid var(--bd);font-size:12px;vertical-align:top">'+htmlEsc(t.description||'')+idLine+'</td>'
+      +'<td style="padding:5px 6px;border-bottom:1px solid var(--bd);font-size:11px;color:var(--muted);vertical-align:top">'+htmlEsc(t.category||'')+'</td>'
+      +'<td style="padding:5px 6px;border-bottom:1px solid var(--bd);font-size:11px;text-align:center;vertical-align:top">'+paidStr+'</td>'
+      +'<td style="padding:5px 6px;border-bottom:1px solid var(--bd);font-size:12px;font-weight:700;text-align:right;color:'+col+';vertical-align:top">'+thb(t.amount)+'</td>'
       +'</tr>';
   }
 
