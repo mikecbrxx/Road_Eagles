@@ -196,7 +196,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.51</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.52</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -827,10 +827,10 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 <div class="mo" id="mo-user"><div class="modal">
   <div class="mh"><div class="mt" id="mo-usr-t">Add App User</div><button class="mc2" onclick="closeM('mo-user')">&#10005;</button></div>
   <div class="fg"><label>Name</label><input type="text" id="usr-name" placeholder="User's name"></div>
-  <div class="fg irow"><div><label>PIN (4 digits)</label><input type="number" id="usr-pin" placeholder="4 digits"></div><div><label>Role</label><select id="usr-role"><option value="officer">Officer (standard)</option><option value="admin">Admin</option></select></div></div>
+  <div class="fg irow"><div><label>PIN (4 digits)</label><input type="number" id="usr-pin" placeholder="4 digits"></div><div><label>Role</label><select id="usr-role" onchange="onUsrRoleChange()"><option value="officer">Officer (standard)</option><option value="admin">Admin</option></select></div></div>
   <div class="fg"><label>Access</label>
     <div class="tg"><button class="tgb" id="usr-ro-n" onclick="selUsrReadOnly(false)">&#9998; Full Access</button><button class="tgb tout" id="usr-ro-y" onclick="selUsrReadOnly(true)">&#128065; Read-Only</button></div>
-    <div style="font-size:10px;color:var(--muted);margin-top:4px">Read-Only users can view and print every screen and report, but cannot add, edit, delete, or change status on anything.</div>
+    <div style="font-size:10px;color:var(--muted);margin-top:4px" id="usr-ro-note">Read-Only users can view and print every screen and report, but cannot add, edit, delete, or change status on anything.</div>
   </div>
   <input type="hidden" id="usr-old">
   <button class="btn btn-gold" onclick="saveUser()">Save User</button>
@@ -1173,7 +1173,10 @@ let CU=null,PIN='';
 // action. isReadOnly() is checked at the top of every such function as the
 // authoritative guard; applyReadOnlyUI() additionally toggles a body class
 // so matching UI elements (class="ro-hide") are hidden/disabled visually.
-function isReadOnly(){return !!(CU&&CU.readOnly);}
+// Admins are never treated as read-only, even if that combination somehow
+// ends up in the data (e.g. an old backup restored from before this rule
+// existed) — this guarantees an edit-capable escape hatch always exists.
+function isReadOnly(){return !!(CU&&CU.readOnly&&CU.role!=='admin');}
 function applyReadOnlyUI(){
   document.body.classList.toggle('read-only-mode',isReadOnly());
   var tu=document.getElementById('tuser');
@@ -2180,10 +2183,34 @@ function changePin(){const o=document.getElementById('cp-old').value.trim(),n=do
 
 // User Modal (Admin)
 var _usrReadOnly=false;
-function selUsrReadOnly(ro){_usrReadOnly=ro;var n=document.getElementById('usr-ro-n'),y=document.getElementById('usr-ro-y');if(n)n.className='tgb'+(!ro?' tin':'');if(y)y.className='tgb'+(ro?' tout':'');}
-function openAddUserModal(){if(isReadOnly()){blockedReadOnly();return;}document.getElementById('mo-usr-t').textContent='Add User';['usr-name','usr-pin','usr-old'].forEach(id=>document.getElementById(id).value='');document.getElementById('usr-role').value='officer';document.getElementById('usr-del-btn').style.display='none';selUsrReadOnly(false);openM('mo-user');}
-function editUser(pin){if(isReadOnly()){blockedReadOnly();return;}const u=D.users[pin];document.getElementById('mo-usr-t').textContent='Edit User';document.getElementById('usr-name').value=u.name;document.getElementById('usr-pin').value=pin;document.getElementById('usr-role').value=u.role;document.getElementById('usr-old').value=pin;document.getElementById('usr-del-btn').style.display=pin===CU.pin?'none':'';selUsrReadOnly(!!u.readOnly);openM('mo-user');}
-function saveUser(){if(isReadOnly()){blockedReadOnly();return;}const name=document.getElementById('usr-name').value.trim();const pin=String(document.getElementById('usr-pin').value).trim();if(!name||!pin){alert('Name and PIN required');return;}if(pin.length!==4){alert('PIN must be exactly 4 digits');return;}const old=document.getElementById('usr-old').value;if(old&&old!==pin&&D.users[old])delete D.users[old];D.users[pin]={name,role:document.getElementById('usr-role').value,readOnly:_usrReadOnly};if(old===CU.pin){CU.readOnly=_usrReadOnly;applyReadOnlyUI();}save();closeM('mo-user');renderSettings();}
+function selUsrReadOnly(ro){
+  var roleSel=document.getElementById('usr-role');
+  if(ro&&roleSel&&roleSel.value==='admin'){
+    alert('Admins cannot be set to Read-Only. This guarantees at least one user can always make changes and undo mistakes — including un-flagging a Read-Only user if needed.');
+    return;
+  }
+  _usrReadOnly=ro;var n=document.getElementById('usr-ro-n'),y=document.getElementById('usr-ro-y');if(n)n.className='tgb'+(!ro?' tin':'');if(y)y.className='tgb'+(ro?' tout':'');
+}
+function onUsrRoleChange(){
+  var roleSel=document.getElementById('usr-role');
+  var yBtn=document.getElementById('usr-ro-y'),note=document.getElementById('usr-ro-note');
+  var isAdminRole=roleSel&&roleSel.value==='admin';
+  if(isAdminRole&&_usrReadOnly)selUsrReadOnly(false);
+  if(yBtn)yBtn.disabled=isAdminRole;
+  if(yBtn)yBtn.style.opacity=isAdminRole?'.4':'1';
+  if(note)note.innerHTML=isAdminRole
+    ?'Admins cannot be Read-Only, to guarantee someone can always make changes.'
+    :'Read-Only users can view and print every screen and report, but cannot add, edit, delete, or change status on anything.';
+}
+function openAddUserModal(){if(isReadOnly()){blockedReadOnly();return;}document.getElementById('mo-usr-t').textContent='Add User';['usr-name','usr-pin','usr-old'].forEach(id=>document.getElementById(id).value='');document.getElementById('usr-role').value='officer';document.getElementById('usr-del-btn').style.display='none';selUsrReadOnly(false);onUsrRoleChange();openM('mo-user');}
+function editUser(pin){if(isReadOnly()){blockedReadOnly();return;}const u=D.users[pin];document.getElementById('mo-usr-t').textContent='Edit User';document.getElementById('usr-name').value=u.name;document.getElementById('usr-pin').value=pin;document.getElementById('usr-role').value=u.role;document.getElementById('usr-old').value=pin;document.getElementById('usr-del-btn').style.display=pin===CU.pin?'none':'';selUsrReadOnly(!!u.readOnly);onUsrRoleChange();openM('mo-user');}
+function saveUser(){
+  if(isReadOnly()){blockedReadOnly();return;}
+  const name=document.getElementById('usr-name').value.trim();const pin=String(document.getElementById('usr-pin').value).trim();if(!name||!pin){alert('Name and PIN required');return;}if(pin.length!==4){alert('PIN must be exactly 4 digits');return;}
+  const role=document.getElementById('usr-role').value;
+  if(role==='admin'&&_usrReadOnly){alert('Admins cannot be set to Read-Only.');return;}
+  const old=document.getElementById('usr-old').value;if(old&&old!==pin&&D.users[old])delete D.users[old];D.users[pin]={name,role,readOnly:_usrReadOnly};if(old===CU.pin){CU.readOnly=_usrReadOnly;applyReadOnlyUI();}save();closeM('mo-user');renderSettings();
+}
 function deleteUser(){if(isReadOnly()){blockedReadOnly();return;}const old=document.getElementById('usr-old').value;if(!old||old===CU.pin){alert('Cannot remove yourself');return;}if(!confirm('Remove this user?'))return;delete D.users[old];save();closeM('mo-user');renderSettings();}
 
 // Settings
