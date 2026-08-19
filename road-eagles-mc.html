@@ -32,6 +32,8 @@ body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',system-ui,sans
 .tb img{width:34px;height:34px;border-radius:50%;border:1px solid var(--gold)}
 .tb-i{flex:1}.tb-i h2{font-size:12px;color:var(--gold);font-weight:700;letter-spacing:1.5px;text-transform:uppercase}.tb-i p{font-size:10px;color:var(--muted)}
 .ub{font-size:10px;color:var(--gl);background:var(--sf2);padding:4px 9px;border-radius:20px;border:1px solid var(--gd);white-space:nowrap}
+body.read-only-mode .ro-hide{display:none!important}
+body.read-only-mode #tuser{color:var(--rl)!important;border-color:var(--red)!important}
 .ib{background:none;border:1px solid var(--bd);color:var(--muted);padding:6px 10px;border-radius:8px;cursor:pointer;font-size:14px}
 .content{flex:1;padding:12px 12px 82px;overflow-y:auto}
 .scr{display:none}.scr.on{display:block}
@@ -194,7 +196,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.50</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.51</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -320,7 +322,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
         </div>
         <div id="merch-list"></div>
         <div id="admin-merch" style="display:none;margin-top:12px">
-          <button class="btn btn-out" onclick="openAddProductModal()">+ Add New Product</button>
+          <button class="btn btn-out ro-hide" onclick="openAddProductModal()">+ Add New Product</button>
         </div>
       </div>
       <div id="merch-stock" style="display:none">
@@ -336,7 +338,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     <div class="scr" id="scr-events">
       <div class="sh"><div class="stitle">Events &amp; Rides</div></div>
       <div id="event-list"><div class="empty"><div class="ei">&#127881;</div>No events yet</div></div>
-      <button class="btn btn-out" style="margin-top:10px" onclick="openEventModal()">+ Add Event</button>
+      <button class="btn btn-out ro-hide" style="margin-top:10px" onclick="openEventModal()">+ Add Event</button>
     </div>
 
     <div class="scr" id="scr-tabs">
@@ -352,7 +354,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 <div class="scr" id="scr-po">
   <div class="sh">
     <div class="stitle">&#128230; Purchase Orders</div>
-    <button class="ib" id="po-add-btn" onclick="openNewPO()" style="font-size:20px;font-weight:300">+</button>
+    <button class="ib ro-hide" id="po-add-btn" onclick="openNewPO()" style="font-size:20px;font-weight:300">+</button>
   </div>
   <div class="tabs" id="po-tabs">
     <button class="tab on" data-cat="all" onclick="setPOTab(this,'all')">All</button>
@@ -407,11 +409,11 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 </div>
 
 <div class="scr" id="scr-suppliers">
-  <div class="sh"><div class="stitle">&#128230; Suppliers</div><button class="ib" onclick="openAddSupplier()" style="font-size:20px;font-weight:300">+</button></div>
+  <div class="sh"><div class="stitle">&#128230; Suppliers</div><button class="ib ro-hide" onclick="openAddSupplier()" style="font-size:20px;font-weight:300">+</button></div>
   <div id="sup-list-s"></div>
 </div>
 <div class="scr" id="scr-products">
-  <div class="sh"><div class="stitle">&#128085;&#65039; Products</div><button class="ib" id="prod-add-btn" style="font-size:20px;font-weight:300;display:none" onclick="openProductModal('')">+</button></div>
+  <div class="sh"><div class="stitle">&#128085;&#65039; Products</div><button class="ib ro-hide" id="prod-add-btn" style="font-size:20px;font-weight:300;display:none" onclick="openProductModal('')">+</button></div>
   <div id="prod-list-s"></div>
 </div>
 <div class="scr" id="scr-more">
@@ -513,7 +515,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     </div>
   </div>
   <button class="back-btn" id="back-btn" onclick="handleBackBtn()"><span style="display:block;line-height:1;margin-top:-1px">&#10094;</span></button>
-  <button class="fab" id="fab" onclick="openFab()">+</button>
+  <button class="fab ro-hide" id="fab" onclick="openFab()">+</button>
   <div class="bn">
     <button class="nb on" id="nb-dash" onclick="goTo('dash')"><span class="ni">&#127968;</span>Home</button>
     <button class="nb" id="nb-ledger" onclick="goTo('ledger')"><span class="ni">&#128179;</span>Ledger</button>
@@ -527,13 +529,13 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 <!-- FAB -->
 <div class="mo" id="mo-fab"><div class="modal">
   <div class="mh"><div class="mt">New Entry</div><button class="mc2" onclick="closeM('mo-fab')">&#10005;</button></div>
-  <button class="fmi" onclick="openSaleModal()"><span class="fmic">&#128085;&#65039;</span><div><div class="fml">Merchandise Sale</div><div class="fms">Record sale &#8212; stock updated automatically</div></div></button>
-  <button class="fmi" onclick="closeM('mo-fab');goTo('po')"><span class="fmic">&#128230;</span><div><div class="fml">Purchase Order</div><div class="fms">Create PO, record payments, receive stock</div></div></button>
-  <button class="fmi" onclick="openOrderModal()"><span class="fmic">&#128230;</span><div><div class="fml">Quick Stock Receive</div><div class="fms">Simple stock receipt without a PO</div></div></button>
-  <button class="fmi" onclick="openTxModal('in')"><span class="fmic">&#11014;&#65039;</span><div><div class="fml">Record Income</div><div class="fms">Donations, fees, event income&#8230;</div></div></button>
-  <button class="fmi" onclick="openTxModal('out')"><span class="fmic">&#11015;&#65039;</span><div><div class="fml">Record Expense</div><div class="fms">Purchases, event costs, charity out&#8230;</div></div></button>
-  <button class="fmi" onclick="openMemberModal()"><span class="fmic">&#128100;</span><div><div class="fml">Add Member / Prospect</div><div class="fms">New member or prospect</div></div></button>
-  <button class="fmi" onclick="closeM('mo-fab');openEventModal()"><span class="fmic">&#127881;</span><div><div class="fml">Add Event</div><div class="fms">Ride, party, fundraiser&#8230;</div></div></button>
+  <button class="fmi ro-hide" onclick="openSaleModal()"><span class="fmic">&#128085;&#65039;</span><div><div class="fml">Merchandise Sale</div><div class="fms">Record sale &#8212; stock updated automatically</div></div></button>
+  <button class="fmi ro-hide" onclick="closeM('mo-fab');goTo('po')"><span class="fmic">&#128230;</span><div><div class="fml">Purchase Order</div><div class="fms">Create PO, record payments, receive stock</div></div></button>
+  <button class="fmi ro-hide" onclick="openOrderModal()"><span class="fmic">&#128230;</span><div><div class="fml">Quick Stock Receive</div><div class="fms">Simple stock receipt without a PO</div></div></button>
+  <button class="fmi ro-hide" onclick="openTxModal('in')"><span class="fmic">&#11014;&#65039;</span><div><div class="fml">Record Income</div><div class="fms">Donations, fees, event income&#8230;</div></div></button>
+  <button class="fmi ro-hide" onclick="openTxModal('out')"><span class="fmic">&#11015;&#65039;</span><div><div class="fml">Record Expense</div><div class="fms">Purchases, event costs, charity out&#8230;</div></div></button>
+  <button class="fmi ro-hide" onclick="openMemberModal()"><span class="fmic">&#128100;</span><div><div class="fml">Add Member / Prospect</div><div class="fms">New member or prospect</div></div></button>
+  <button class="fmi ro-hide" onclick="closeM('mo-fab');openEventModal()"><span class="fmic">&#127881;</span><div><div class="fml">Add Event</div><div class="fms">Ride, party, fundraiser&#8230;</div></div></button>
 </div></div>
 
 <!-- TX -->
@@ -826,6 +828,10 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="mh"><div class="mt" id="mo-usr-t">Add App User</div><button class="mc2" onclick="closeM('mo-user')">&#10005;</button></div>
   <div class="fg"><label>Name</label><input type="text" id="usr-name" placeholder="User's name"></div>
   <div class="fg irow"><div><label>PIN (4 digits)</label><input type="number" id="usr-pin" placeholder="4 digits"></div><div><label>Role</label><select id="usr-role"><option value="officer">Officer (standard)</option><option value="admin">Admin</option></select></div></div>
+  <div class="fg"><label>Access</label>
+    <div class="tg"><button class="tgb" id="usr-ro-n" onclick="selUsrReadOnly(false)">&#9998; Full Access</button><button class="tgb tout" id="usr-ro-y" onclick="selUsrReadOnly(true)">&#128065; Read-Only</button></div>
+    <div style="font-size:10px;color:var(--muted);margin-top:4px">Read-Only users can view and print every screen and report, but cannot add, edit, delete, or change status on anything.</div>
+  </div>
   <input type="hidden" id="usr-old">
   <button class="btn btn-gold" onclick="saveUser()">Save User</button>
   <button class="btn btn-red" id="usr-del-btn" style="display:none;margin-top:6px" onclick="deleteUser()">Remove User</button>
@@ -1162,6 +1168,18 @@ function _retryStartup(){
 })();
 
 let CU=null,PIN='';
+// Read-only access: a per-user flag (independent of role) that allows full
+// view/print access everywhere but blocks every add/edit/delete/status-change
+// action. isReadOnly() is checked at the top of every such function as the
+// authoritative guard; applyReadOnlyUI() additionally toggles a body class
+// so matching UI elements (class="ro-hide") are hidden/disabled visually.
+function isReadOnly(){return !!(CU&&CU.readOnly);}
+function applyReadOnlyUI(){
+  document.body.classList.toggle('read-only-mode',isReadOnly());
+  var tu=document.getElementById('tuser');
+  if(tu)tu.textContent=CU.name+(CU.role==='admin'?' [A]':'')+(isReadOnly()?' [READ-ONLY]':'');
+}
+function blockedReadOnly(){alert('Read-only access — you cannot make changes.');}
 let LF='paid',MF='all',RF='all',STF='all',MV='catalogue',TLF='all';
 function audit(action, detail, before, after){
   if(!D.auditLog)D.auditLog=[];
@@ -1341,6 +1359,7 @@ function tryLogin(){
     document.getElementById('ls').style.display='none';
     document.getElementById('app').style.display='flex';
     document.getElementById('tuser').textContent=CU.name+(CU.role==='admin'?' [A]':'');
+    applyReadOnlyUI();
     document.getElementById('tdate').textContent=new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
     if(CU.role==='admin')['admin-settings','sync-settings','backup-settings','admin-merch','audit-btn'].forEach(id=>document.getElementById(id).style.display='');
     loadSettings();
@@ -1654,7 +1673,7 @@ function renderLedger(){
   el.innerHTML=txs.length?txs.map(txCard).join(''):'<div class="empty"><div class="ei">&#128203;</div>No entries match</div>';
   if(!el._txd){el._txd=true;el.addEventListener('click',function(e){var t=e.target;while(t&&t!==el){if(t.dataset&&t.dataset.txid){openTxEdit(t.dataset.txid);return;}t=t.parentElement;}});}
 }
-function delTx(id){if(!CU||CU.role!=='admin')return;if(!confirm('Delete permanently?'))return;D.transactions=D.transactions.filter(t=>t.id!==id);save();renderAll();}
+function delTx(id){if(isReadOnly()){blockedReadOnly();return;}if(!CU||CU.role!=='admin')return;if(!confirm('Delete permanently?'))return;D.transactions=D.transactions.filter(t=>t.id!==id);save();renderAll();}
 
 // Members
 function renderMembers(){
@@ -1673,10 +1692,11 @@ function renderMembers(){
     const sl={paid:'Fee Paid &#10003;',unpaid:'Fee Unpaid &#9888;&#65039;',prospect:'Prospect',supporter:'&#129309; Supporter',inactive:'&#128683; Inactive'};
     return`<div class="mc" style="${m.status==='inactive'?'opacity:0.5':''}"><div class="mav" style="${m.status==='inactive'?'background:var(--muted)':''}">${init}</div><div class="min"><div class="mn">${m.name}</div><div class="mr">${RL[m.role]||m.role}</div>${(m.status!=='prospect'&&m.status!=='supporter')?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${new Date().getFullYear()} fee: ${thb(calcFee(m.joinDate))}</div>`:''}
         ${m.phone?`<div style="font-size:10px;color:var(--dim)">&#128222; ${m.phone}</div>`:''}
-        ${m.email?`<div style="font-size:10px;color:var(--dim)">&#9993; ${m.email}</div>`:''}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="ms ${sc[m.status]||'prospect'}">${sl[m.status]||m.status}</span>${m.status==='unpaid'?`<button style="font-size:10px;background:none;border:1px solid var(--grn);color:var(--grnl);border-radius:20px;padding:3px 8px;cursor:pointer" onclick="markPaid('${m.id}')">Mark Paid</button>`:''}${m.status!=='prospect'?`<button style="font-size:10px;background:none;border:1px solid var(--bd);color:var(--muted);border-radius:20px;padding:3px 8px;margin-left:4px;cursor:pointer" onclick="toggleInactive('${m.id}')">${m.status==='inactive'?'&#9654; Reactivate':'&#128683; Deactivate'}</button>`:''}${CU&&CU.role==='admin'?`<button style="font-size:10px;background:none;border:1px solid var(--bd);color:var(--muted);border-radius:20px;padding:3px 8px;margin-left:4px;cursor:pointer" onclick="editMem('${m.id}')">Edit</button>`:''}</div></div>`;
+        ${m.email?`<div style="font-size:10px;color:var(--dim)">&#9993; ${m.email}</div>`:''}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="ms ${sc[m.status]||'prospect'}">${sl[m.status]||m.status}</span>${m.status==='unpaid'?`<button class="ro-hide" style="font-size:10px;background:none;border:1px solid var(--grn);color:var(--grnl);border-radius:20px;padding:3px 8px;cursor:pointer" onclick="markPaid('${m.id}')">Mark Paid</button>`:''}${m.status!=='prospect'?`<button class="ro-hide" style="font-size:10px;background:none;border:1px solid var(--bd);color:var(--muted);border-radius:20px;padding:3px 8px;margin-left:4px;cursor:pointer" onclick="toggleInactive('${m.id}')">${m.status==='inactive'?'&#9654; Reactivate':'&#128683; Deactivate'}</button>`:''}${CU&&CU.role==='admin'?`<button class="ro-hide" style="font-size:10px;background:none;border:1px solid var(--bd);color:var(--muted);border-radius:20px;padding:3px 8px;margin-left:4px;cursor:pointer" onclick="editMem('${m.id}')">Edit</button>`:''}</div></div>`;
   }).join('')||'<div class="empty"><div class="ei">&#128101;</div>No members match</div>';
 }
 function toggleInactive(id){
+  if(isReadOnly()){blockedReadOnly();return;}
   var m=D.members.find(function(x){return x.id===id;});
   if(!m)return;
   var curYear=new Date().getFullYear();
@@ -1699,6 +1719,7 @@ function toggleInactive(id){
   save();renderAll();
 }
 function markPaid(id){
+  if(isReadOnly()){blockedReadOnly();return;}
   const m=D.members.find(x=>x.id===id);if(!m)return;
   m.status='paid';
   audit('FEE_PAID','Fee marked paid for: '+m.name);
@@ -1729,9 +1750,10 @@ function getMemberRoleOptions(selectedId){
   }).join('');
 }
 function editMem(id){
+  if(isReadOnly()){blockedReadOnly();return;}
   var roleEl2=document.getElementById('mem-role');
   const m=D.members.find(x=>x.id===id);if(!m)return;if(roleEl2)roleEl2.innerHTML=getMemberRoleOptions(m.role);document.getElementById('mo-mem-t').textContent='Edit Member';document.getElementById('mem-id').value=id;document.getElementById('mem-name').value=m.name;document.getElementById('mem-role').value=m.role;document.getElementById('mem-status').value=m.status;document.getElementById('mem-join').value=m.joinDate||'';document.getElementById('mem-phone').value=m.phone||'';document.getElementById('mem-email').value=m.email||'';document.getElementById('mem-notes').value=m.notes||'';document.getElementById('mem-del').style.display='';openM('mo-member');}
-function deleteMember(){const id=document.getElementById('mem-id').value;if(!id||!CU||CU.role!=='admin')return;if(!confirm('Delete member?'))return;D.members=D.members.filter(m=>m.id!==id);save();closeM('mo-member');renderMembers();}
+function deleteMember(){if(isReadOnly()){blockedReadOnly();return;}const id=document.getElementById('mem-id').value;if(!id||!CU||CU.role!=='admin')return;if(!confirm('Delete member?'))return;D.members=D.members.filter(m=>m.id!==id);save();closeM('mo-member');renderMembers();}
 
 // Merch Catalogue
 function renderMerch(){
@@ -1746,7 +1768,7 @@ function renderMerch(){
   const active=ps.filter(p=>!p.archived),archived=ps.filter(p=>p.archived);
   const CL=(function(){var m={};getProdCats().forEach(function(c){m[c.id]=c.label;});return m;})();
   function pc(p){
-    return`<div class="pc${p.archived?' archived':''}"><div class="ph"><div class="pn">${p.name}</div><div style="display:flex;gap:6px;align-items:center">${p.archived?'<span class="pill archived">Archived</span>':''}<span class="pill">${CL[p.category]||p.category}</span><button onclick="openEditProductModal('${p.id}')" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:8px;padding:3px 9px;cursor:pointer;font-size:11px">Edit</button></div></div>${p.hasSizes?`<div style="font-size:10px;color:var(--dim);margin-bottom:6px">Sizes: ${SIZES.join(', ')}</div>`:''}<div>${p.variants.map(v=>{const sampleCol=isSingleColour(p)?'':(D.colours.length>0?D.colours[0].name:'Black');
+    return`<div class="pc${p.archived?' archived':''}"><div class="ph"><div class="pn">${p.name}</div><div style="display:flex;gap:6px;align-items:center">${p.archived?'<span class="pill archived">Archived</span>':''}<span class="pill">${CL[p.category]||p.category}</span><button class="ro-hide" onclick="openEditProductModal('${p.id}')" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:8px;padding:3px 9px;cursor:pointer;font-size:11px">Edit</button></div></div>${p.hasSizes?`<div style="font-size:10px;color:var(--dim);margin-bottom:6px">Sizes: ${SIZES.join(', ')}</div>`:''}<div>${p.variants.map(v=>{const sampleCol=isSingleColour(p)?'':(D.colours.length>0?D.colours[0].name:'Black');
           // Sum stock across all sizes and colours for this variant
           var totalQ=0;
           if(p.hasSizes){
@@ -1808,6 +1830,7 @@ function renderStock(){
 function setTabLTab(b,v){document.querySelectorAll('#tab-ledger-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');TLF=v;renderTabLedger();}
 
 function markTxPaid(id){
+  if(isReadOnly()){blockedReadOnly();return;}
   // Check if this is a PO item
   var po=(D.purchaseOrders||[]).find(function(p){return p.id===id;});
   if(po){openPOPayment(id);return;}
@@ -1866,13 +1889,13 @@ function renderTabLedger(){
     const dirCol=t.direction==='in'?'var(--grnl)':'var(--rl)';
     const resp=t.responsibleMemberName||t.enteredBy||'?';
     const markBtn=t.isTab
-      ?`<div style="display:flex;gap:6px;margin-top:8px">
+      ?`<div class="ro-hide" style="display:flex;gap:6px;margin-top:8px">
           <button onclick="openEditTab('${t.id}')" style="flex:1;background:none;border:1px solid var(--bd);color:var(--muted);border-radius:20px;padding:4px 12px;cursor:pointer;font-size:11px">&#9998; Edit</button>
           <button onclick="openSettleTab('${t.id}')" style="flex:2;background:none;border:1px solid var(--grn);color:var(--grnl);border-radius:20px;padding:4px 12px;cursor:pointer;font-size:11px">&#10003; Mark Paid</button>
         </div>`
       :t.isPO
       ?`<button onclick="openPODetailById('${t.id}')" style="margin-top:8px;background:none;border:1px solid var(--bd);color:var(--muted);border-radius:20px;padding:4px 12px;cursor:pointer;font-size:11px;width:100%">&#128196; View PO</button>`
-      :`<div style="display:flex;gap:6px;margin-top:8px">
+      :`<div class="ro-hide" style="display:flex;gap:6px;margin-top:8px">
           <button onclick="openTxEdit('${t.id}')" style="flex:1;background:none;border:1px solid var(--bd);color:var(--muted);border-radius:20px;padding:4px 12px;cursor:pointer;font-size:11px">&#9998; Edit</button>
           <button onclick="markTxPaid('${t.id}')" style="flex:2;background:none;border:1px solid var(--grn);color:var(--grnl);border-radius:20px;padding:4px 12px;cursor:pointer;font-size:11px">&#10003; Mark Paid / Received</button>
         </div>`;
@@ -1905,13 +1928,13 @@ function renderEvents(){
     var statusBadge=ev.closed
       ?'<span style="font-size:10px;font-weight:700;color:var(--grnl);background:rgba(39,174,96,.15);border:1px solid var(--grn);border-radius:20px;padding:2px 8px;margin-left:6px">&#9989; CLOSED</span>'
       :'<span style="font-size:10px;font-weight:700;color:var(--rl);background:rgba(192,57,43,.15);border:1px solid var(--red);border-radius:20px;padding:2px 8px;margin-left:6px">&#128275; OPEN</span>';
-    var delBtn=isAdmin?('<button data-evid="'+evId+'" onclick="deleteEvent(this.dataset.evid)" style="background:none;border:1px solid var(--red);color:var(--rl);border-radius:8px;padding:2px 8px;cursor:pointer;font-size:11px">Delete</button>'):'';
+    var delBtn=isAdmin?('<button class="ro-hide" data-evid="'+evId+'" onclick="deleteEvent(this.dataset.evid)" style="background:none;border:1px solid var(--red);color:var(--rl);border-radius:8px;padding:2px 8px;cursor:pointer;font-size:11px">Delete</button>'):'';
     var txSummary=et.length?('<div style="margin-top:8px;font-size:12px">Income: <span style="color:var(--grnl)">'+thb(eI)+'</span> &middot; Costs: <span style="color:var(--rl)">'+thb(eO)+'</span> &middot; Net: <span style="color:'+(eI-eO>=0?'var(--grnl)':'var(--rl)')+'">'+thb(eI-eO)+'</span></div>'):'';
     return '<div class="ec">'
       +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
       +'<div class="en" style="margin:0">'+ev.name+statusBadge+'</div>'
       +'<div style="display:flex;gap:5px">'
-      +'<button data-evid="'+evId+'" onclick="editEvent(this.dataset.evid)" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:8px;padding:2px 8px;cursor:pointer;font-size:11px">Edit</button>'
+      +'<button class="ro-hide" data-evid="'+evId+'" onclick="editEvent(this.dataset.evid)" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:8px;padding:2px 8px;cursor:pointer;font-size:11px">Edit</button>'
       +delBtn
       +'</div></div>'
       +'<div class="em"><span>&#128197; '+fd(ev.date)+'</span><span>&#128205; '+(ev.venue||'TBC')+'</span><span>&#127917; '+ev.type+'</span></div>'
@@ -1944,6 +1967,7 @@ function openFab(){openM('mo-fab');}
 // TX Modal
 let _ta='club',_td='in';
 function openTxModal(dir){
+  if(isReadOnly()){blockedReadOnly();return;}
   closeM('mo-fab');_td=dir;_ta='club';
   selDir(dir);selAcc('club');
   selTxPay('paid');
@@ -1959,6 +1983,7 @@ function selAcc(a){_ta=a;document.getElementById('tacc-c').className='tgb'+(a===
 function selDir(d){_td=d;document.getElementById('tdir-i').className='tgb'+(d==='in'?' tin':'');document.getElementById('tdir-o').className='tgb'+(d==='out'?' tout':'');updateCats();}
 function updateCats(){const cats=_td==='in'?CATS_I:CATS_O;document.getElementById('tx-cat').innerHTML=cats.map(c=>`<option value="${c}">${CM[c]||c}</option>`).join('');}
 function saveTx(){
+  if(isReadOnly()){blockedReadOnly();return;}
   const amtRaw=document.getElementById('tx-amt').value;
   if(amtRaw.trim()===''){alert('Please enter an amount (0 is allowed, e.g. for a no-cost/in-kind donation)');return;}
   const amt=parseFloat(amtRaw);
@@ -1987,7 +2012,7 @@ function selTxPay(v){
   const rg=document.getElementById('tx-resp-g');
   if(rg)rg.style.display=v==='unpaid'?'':'none';
 }
-function openSaleModal(){closeM('mo-fab');_cu='member';selCust('member');selPayment('paid');document.getElementById('sale-date').value=nd();document.getElementById('sale-qty').value=1;document.getElementById('sale-notes').value='';document.getElementById('sale-stock-info').style.display='none';populateEvSel('sale-ev','');const cs=document.getElementById('sale-colour');cs.innerHTML=D.colours.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');const bk=[...cs.options].find(o=>o.value==='Black');if(bk)cs.value='Black';document.getElementById('sale-prod').innerHTML=D.products.filter(p=>!p.archived).sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${p.id}">${p.name}</option>`).join('');// populate member list for tab
+function openSaleModal(){if(isReadOnly()){blockedReadOnly();return;}closeM('mo-fab');_cu='member';selCust('member');selPayment('paid');document.getElementById('sale-date').value=nd();document.getElementById('sale-qty').value=1;document.getElementById('sale-notes').value='';document.getElementById('sale-stock-info').style.display='none';populateEvSel('sale-ev','');const cs=document.getElementById('sale-colour');cs.innerHTML=D.colours.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');const bk=[...cs.options].find(o=>o.value==='Black');if(bk)cs.value='Black';document.getElementById('sale-prod').innerHTML=D.products.filter(p=>!p.archived).sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${p.id}">${p.name}</option>`).join('');// populate member list for tab
 const memSel=document.getElementById('sale-tab-member');memSel.innerHTML=D.members.filter(m=>m.status!=='prospect'&&m.status!=='inactive').map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
 updateSaleVars();openM('mo-sale');}
 let _payMode='paid';
@@ -2020,6 +2045,7 @@ function updSaleTotal(){document.getElementById('sale-total').innerHTML=thb((par
 function updateSaleStock(){const p=D.products.find(x=>x.id===document.getElementById('sale-prod').value);if(!p)return;const vi=parseInt(document.getElementById('sale-var').value)||0;const v=p.variants[vi];const sz=p.hasSizes?document.getElementById('sale-size').value:null;const rawCol=document.getElementById('sale-colour').value;const col=stockCol(p,rawCol);const q=getStock(p.id,v.id,sz,col);const el=document.getElementById('sale-stock-info');const st=stSt(q);const c2=st==='ok'?'var(--grnl)':st==='low'?'var(--warn)':st==='negative'?'var(--blul)':'var(--rl)';const msg=st==='negative'?'⚠️ Oversold by '+Math.abs(q)+' — order required':st==='out'?'Out of stock — sale will go negative':st==='low'?'Low stock':'In stock';el.style.display='';el.innerHTML='<span style="color:'+c2+';font-weight:600">Stock: '+q+' — '+msg+'</span>';}
 function selCust(c){_cu=c;document.getElementById('cust-m').className='tgb'+(c==='member'?' tmem':'');document.getElementById('cust-v').className='tgb'+(c==='visitor'?' tvis':'');updateSalePrice();}
 function saveSale(){
+  if(isReadOnly()){blockedReadOnly();return;}
   const p=D.products.find(x=>x.id===document.getElementById('sale-prod').value);
   const vi=parseInt(document.getElementById('sale-var').value)||0;
   const v=p.variants[vi];
@@ -2049,30 +2075,30 @@ function saveSale(){
 }
 
 // Order Modal
-function openOrderModal(){closeM('mo-fab');document.getElementById('ord-date').value=nd();['ord-ref','ord-notes','ord-sup'].forEach(id=>document.getElementById(id).value='');document.getElementById('ord-qty').value=1;document.getElementById('ord-total').innerHTML='&#3647;0';const cs=document.getElementById('ord-colour');cs.innerHTML=D.colours.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');const bk=[...cs.options].find(o=>o.value==='Black');if(bk)cs.value='Black';document.getElementById('ord-sup-dl').innerHTML=[...D.suppliers].sort(function(a,b){return(a.name||'').localeCompare(b.name||'');}).map(function(s){return'<option value="'+(s.name||s)+'">';}).join('');document.getElementById('ord-prod').innerHTML=D.products.filter(p=>!p.archived).sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${p.id}">${p.name}</option>`).join('');updateOrdVars();populateEvSel('ord-ev','');openM('mo-order');}
+function openOrderModal(){if(isReadOnly()){blockedReadOnly();return;}closeM('mo-fab');document.getElementById('ord-date').value=nd();['ord-ref','ord-notes','ord-sup'].forEach(id=>document.getElementById(id).value='');document.getElementById('ord-qty').value=1;document.getElementById('ord-total').innerHTML='&#3647;0';const cs=document.getElementById('ord-colour');cs.innerHTML=D.colours.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');const bk=[...cs.options].find(o=>o.value==='Black');if(bk)cs.value='Black';document.getElementById('ord-sup-dl').innerHTML=[...D.suppliers].sort(function(a,b){return(a.name||'').localeCompare(b.name||'');}).map(function(s){return'<option value="'+(s.name||s)+'">';}).join('');document.getElementById('ord-prod').innerHTML=D.products.filter(p=>!p.archived).sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${p.id}">${p.name}</option>`).join('');updateOrdVars();populateEvSel('ord-ev','');openM('mo-order');}
 function updateOrdVars(){const p=D.products.find(x=>x.id===document.getElementById('ord-prod').value);if(!p)return;document.getElementById('ord-var').innerHTML=p.variants.map((v,i)=>`<option value="${i}">${v.name}</option>`).join('');updateOrdVarChange();}
 function updateOrdVarChange(){const p=D.products.find(x=>x.id===document.getElementById('ord-prod').value);if(!p)return;document.getElementById('ord-sz-g').style.display=p.hasSizes?'':'none';if(p.hasSizes)document.getElementById('ord-size').innerHTML=SIZES.map(s=>`<option>${s}</option>`).join('');const vi=parseInt(document.getElementById('ord-var').value)||0;const v=p.variants[vi];if(v)document.getElementById('ord-cost').value=v.production||0;const ordColRow=document.getElementById('ord-colour-row');if(ordColRow)ordColRow.style.display=isSingleColour(p)?'none':'';
   if(!isSingleColour(p)){const ocs=document.getElementById('ord-colour');if(ocs)ocs.innerHTML=(p.colours||[]).map(function(cn){return'<option value="'+cn+'">'+cn+'</option>';}).join('');}updOrdTotal();}
 function updOrdTotal(){document.getElementById('ord-total').innerHTML=thb((parseInt(document.getElementById('ord-qty').value)||0)*(parseFloat(document.getElementById('ord-cost').value)||0));}
-function saveOrder(){const p=D.products.find(x=>x.id===document.getElementById('ord-prod').value);if(!p){alert('Select a product');return;}const vi=parseInt(document.getElementById('ord-var').value)||0;const v=p.variants[vi];const qty=parseInt(document.getElementById('ord-qty').value)||0;if(qty<=0){alert('Quantity must be at least 1');return;}const cost=parseFloat(document.getElementById('ord-cost').value)||0;const sz=p.hasSizes?document.getElementById('ord-size').value:null;const rawOrdCol=document.getElementById('ord-colour').value;const col=stockCol(p,rawOrdCol);const sup=document.getElementById('ord-sup').value.trim();if(sup&&!D.suppliers.find(function(x){return(x.name||x)===sup;}))D.suppliers.push({id:uid(),name:sup,phone:'',email:'',website:'',contact:'',address:''});adjStock(p.id,v.id,sz,col,qty,'ordered');var ordEvId=document.getElementById('ord-ev')?document.getElementById('ord-ev').value||'':'';
+function saveOrder(){if(isReadOnly()){blockedReadOnly();return;}const p=D.products.find(x=>x.id===document.getElementById('ord-prod').value);if(!p){alert('Select a product');return;}const vi=parseInt(document.getElementById('ord-var').value)||0;const v=p.variants[vi];const qty=parseInt(document.getElementById('ord-qty').value)||0;if(qty<=0){alert('Quantity must be at least 1');return;}const cost=parseFloat(document.getElementById('ord-cost').value)||0;const sz=p.hasSizes?document.getElementById('ord-size').value:null;const rawOrdCol=document.getElementById('ord-colour').value;const col=stockCol(p,rawOrdCol);const sup=document.getElementById('ord-sup').value.trim();if(sup&&!D.suppliers.find(function(x){return(x.name||x)===sup;}))D.suppliers.push({id:uid(),name:sup,phone:'',email:'',website:'',contact:'',address:''});adjStock(p.id,v.id,sz,col,qty,'ordered');var ordEvId=document.getElementById('ord-ev')?document.getElementById('ord-ev').value||'':'';
   D.transactions.push({id:uid(),account:'club',direction:'out',category:'stock_order',eventId:ordEvId,amount:cost*qty,description:'Stock order: '+p.name+' – '+v.name+(sz?' ('+sz+')':'')+(col?', '+col:'')+' ×'+qty,supplier:sup,ref:document.getElementById('ord-ref').value.trim(),date:document.getElementById('ord-date').value,created:ni(),notes:document.getElementById('ord-notes').value.trim(),enteredBy:CU.name,productId:p.id,variantId:v.id,qty,unitCost:cost,colour:col,size:sz});save();closeM('mo-order');renderAll();}
 
 // Member Modal
-function openMemberModal(){closeM('mo-fab');
+function openMemberModal(){if(isReadOnly()){blockedReadOnly();return;}closeM('mo-fab');
   var roleEl=document.getElementById('mem-role');
   if(roleEl)roleEl.innerHTML=getMemberRoleOptions('prospect');
   document.getElementById('mo-mem-t').textContent='Add Member / Prospect';document.getElementById('mem-id').value='';['mem-name','mem-phone','mem-email','mem-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('mem-role').value='prospect';document.getElementById('mem-status').value='prospect';document.getElementById('mem-join').value=nd();document.getElementById('mem-del').style.display='none';openM('mo-member');}
-function saveMember(){const name=document.getElementById('mem-name').value.trim();if(!name){alert('Name required');return;}const id=document.getElementById('mem-id').value;const data={name,role:document.getElementById('mem-role').value,status:document.getElementById('mem-status').value,joinDate:document.getElementById('mem-join').value,phone:document.getElementById('mem-phone').value,email:document.getElementById('mem-email').value.trim(),notes:document.getElementById('mem-notes').value};if(id){const m=D.members.find(x=>x.id===id);if(!m)return;Object.assign(m,data);}else D.members.push({id:uid(),...data,addedBy:CU.name,created:ni()});save();closeM('mo-member');renderMembers();}
+function saveMember(){if(isReadOnly()){blockedReadOnly();return;}const name=document.getElementById('mem-name').value.trim();if(!name){alert('Name required');return;}const id=document.getElementById('mem-id').value;const data={name,role:document.getElementById('mem-role').value,status:document.getElementById('mem-status').value,joinDate:document.getElementById('mem-join').value,phone:document.getElementById('mem-phone').value,email:document.getElementById('mem-email').value.trim(),notes:document.getElementById('mem-notes').value};if(id){const m=D.members.find(x=>x.id===id);if(!m)return;Object.assign(m,data);}else D.members.push({id:uid(),...data,addedBy:CU.name,created:ni()});save();closeM('mo-member');renderMembers();}
 
 // Event Modal
-function openEventModal(){document.getElementById('mo-ev-t').textContent='Add Event';document.getElementById('ev-id').value='';['ev-name','ev-venue','ev-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('ev-date').value=nd();var etSel=document.getElementById('ev-type');
+function openEventModal(){if(isReadOnly()){blockedReadOnly();return;}document.getElementById('mo-ev-t').textContent='Add Event';document.getElementById('ev-id').value='';['ev-name','ev-venue','ev-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('ev-date').value=nd();var etSel=document.getElementById('ev-type');
   if(etSel){etSel.innerHTML=(D.eventTypes||['party','ride','fundraiser','other']).map(function(t){return'<option value="'+t+'">'+t.charAt(0).toUpperCase()+t.slice(1)+'</option>';}).join('');etSel.value='party';}selEvStatus(false);openM('mo-event');}
-function editEvent(id){const ev=D.events.find(e=>e.id===id);if(!ev)return;document.getElementById('mo-ev-t').textContent='Edit Event';document.getElementById('ev-id').value=id;document.getElementById('ev-name').value=ev.name;document.getElementById('ev-date').value=ev.date||'';var etSelE=document.getElementById('ev-type');
+function editEvent(id){if(isReadOnly()){blockedReadOnly();return;}const ev=D.events.find(e=>e.id===id);if(!ev)return;document.getElementById('mo-ev-t').textContent='Edit Event';document.getElementById('ev-id').value=id;document.getElementById('ev-name').value=ev.name;document.getElementById('ev-date').value=ev.date||'';var etSelE=document.getElementById('ev-type');
   if(etSelE){etSelE.innerHTML=(D.eventTypes||['party','ride','fundraiser','other']).map(function(t){return'<option value="'+t+'">'+t.charAt(0).toUpperCase()+t.slice(1)+'</option>';}).join('');etSelE.value=ev.type||'party';}document.getElementById('ev-venue').value=ev.venue||'';document.getElementById('ev-notes').value=ev.notes||'';selEvStatus(!!ev.closed);openM('mo-event');}
-function deleteEvent(id){if(!CU||CU.role!=='admin')return;if(!confirm('Delete this event? Linked transactions will remain.'))return;D.events=D.events.filter(e=>e.id!==id);save();renderEvents();}
+function deleteEvent(id){if(isReadOnly()){blockedReadOnly();return;}if(!CU||CU.role!=='admin')return;if(!confirm('Delete this event? Linked transactions will remain.'))return;D.events=D.events.filter(e=>e.id!==id);save();renderEvents();}
 var _evClosed=false;
 function selEvStatus(closed){_evClosed=closed;var ob=document.getElementById('ev-stat-open'),cb=document.getElementById('ev-stat-closed');if(ob)ob.className='tgb'+(!closed?' tout':'');if(cb)cb.className='tgb'+(closed?' tin':'');}
-function saveEvent(){const name=document.getElementById('ev-name').value.trim();if(!name){alert('Event name required');return;}if(!D.events)D.events=[];const eid=document.getElementById('ev-id').value;const evData={name,date:document.getElementById('ev-date').value,type:document.getElementById('ev-type').value,venue:document.getElementById('ev-venue').value.trim(),notes:document.getElementById('ev-notes').value.trim(),closed:_evClosed};if(eid){const ev=D.events.find(e=>e.id===eid);if(ev){var wasClosed=!!ev.closed;Object.assign(ev,evData);if(wasClosed!==_evClosed)audit('EVENT_STATUS',(_evClosed?'Closed':'Re-opened')+' event: '+ev.name);}}else{D.events.push({id:uid(),...evData,created:ni(),addedBy:CU.name});}save();closeM('mo-event');renderEvents();renderAll();}
+function saveEvent(){if(isReadOnly()){blockedReadOnly();return;}const name=document.getElementById('ev-name').value.trim();if(!name){alert('Event name required');return;}if(!D.events)D.events=[];const eid=document.getElementById('ev-id').value;const evData={name,date:document.getElementById('ev-date').value,type:document.getElementById('ev-type').value,venue:document.getElementById('ev-venue').value.trim(),notes:document.getElementById('ev-notes').value.trim(),closed:_evClosed};if(eid){const ev=D.events.find(e=>e.id===eid);if(ev){var wasClosed=!!ev.closed;Object.assign(ev,evData);if(wasClosed!==_evClosed)audit('EVENT_STATUS',(_evClosed?'Closed':'Re-opened')+' event: '+ev.name);}}else{D.events.push({id:uid(),...evData,created:ni(),addedBy:CU.name});}save();closeM('mo-event');renderEvents();renderAll();}
 
 // Product Modal
 let _prSz=false,_prMO=false,_prVars=[];
@@ -2108,8 +2134,8 @@ function getPrSelectedSizes(){
   var el=document.getElementById('pr-sizes');if(!el)return[];
   return [...el.querySelectorAll('input:checked')].map(function(cb){return cb.value;});
 }
-function openProductModal(pid){if(pid)openEditProductModal(pid);else openAddProductModal();}
-function openAddProductModal(){document.getElementById('mo-prod-t').textContent='Add Product';
+function openProductModal(pid){if(isReadOnly()){blockedReadOnly();return;}if(pid)openEditProductModal(pid);else openAddProductModal();}
+function openAddProductModal(){if(isReadOnly()){blockedReadOnly();return;}document.getElementById('mo-prod-t').textContent='Add Product';
   document.getElementById('pr-id').value='';
   document.getElementById('pr-name').value='';
   var pcSel=document.getElementById('pr-cat');
@@ -2125,7 +2151,7 @@ function openAddProductModal(){document.getElementById('mo-prod-t').textContent=
   document.getElementById('pr-rest-btn').style.display='none';
   openM('mo-product');
 }
-function openEditProductModal(pid){const p=D.products.find(x=>x.id===pid);if(!p)return;
+function openEditProductModal(pid){if(isReadOnly()){blockedReadOnly();return;}const p=D.products.find(x=>x.id===pid);if(!p)return;
   document.getElementById('mo-prod-t').textContent='Edit Product';
   document.getElementById('pr-id').value=pid;
   document.getElementById('pr-name').value=p.name;
@@ -2142,21 +2168,23 @@ function openEditProductModal(pid){const p=D.products.find(x=>x.id===pid);if(!p)
   document.getElementById('pr-rest-btn').style.display=p.archived?'':'none';
   openM('mo-product');
 }
-function saveProduct(){const name=document.getElementById('pr-name').value.trim();if(!name){alert('Product name required');return;}if(_prVars.some(v=>!v.name.trim())){alert('All variants need a name');return;}const pid=document.getElementById('pr-id').value;const selCols=getPrSelectedColours();
+function saveProduct(){if(isReadOnly()){blockedReadOnly();return;}const name=document.getElementById('pr-name').value.trim();if(!name){alert('Product name required');return;}if(_prVars.some(v=>!v.name.trim())){alert('All variants need a name');return;}const pid=document.getElementById('pr-id').value;const selCols=getPrSelectedColours();
   const selSzs=getPrSelectedSizes();
   if(!selCols.length){alert('Please select at least one colour.');return;}
   const data={name,category:document.getElementById('pr-cat').value,hasSizes:selSzs.length>0,memberOnly:_prMO,colours:selCols,sizes:selSzs,variants:_prVars.map(v=>({...v,name:v.name.trim()}))};if(pid){const p=D.products.find(x=>x.id===pid);if(!p)return;const pb={name:p.name,category:p.category};Object.assign(p,data);audit('PRODUCT_EDIT','Edited: '+name,pb,{name,category:data.category});}else{D.products.push({id:uid(),archived:false,...data});audit('PRODUCT_ADD','Added product: '+name,undefined,{name,category:data.category});}save();closeM('mo-product');renderMerch();}
-function archiveProduct(){const pid=document.getElementById('pr-id').value;if(!pid)return;if(!confirm('Archive this product? Hidden from new sales but kept in reports.'))return;const p=D.products.find(x=>x.id===pid);if(p){audit('PRODUCT_ARCHIVE','Archived: '+p.name);p.archived=true;}save();closeM('mo-product');renderMerch();}
-function restoreProduct(){const pid=document.getElementById('pr-id').value;if(!pid)return;const p=D.products.find(x=>x.id===pid);if(p){audit('PRODUCT_RESTORE','Restored: '+p.name);p.archived=false;}save();closeM('mo-product');renderMerch();}
+function archiveProduct(){if(isReadOnly()){blockedReadOnly();return;}const pid=document.getElementById('pr-id').value;if(!pid)return;if(!confirm('Archive this product? Hidden from new sales but kept in reports.'))return;const p=D.products.find(x=>x.id===pid);if(p){audit('PRODUCT_ARCHIVE','Archived: '+p.name);p.archived=true;}save();closeM('mo-product');renderMerch();}
+function restoreProduct(){if(isReadOnly()){blockedReadOnly();return;}const pid=document.getElementById('pr-id').value;if(!pid)return;const p=D.products.find(x=>x.id===pid);if(p){audit('PRODUCT_RESTORE','Restored: '+p.name);p.archived=false;}save();closeM('mo-product');renderMerch();}
 
 // PIN change (all users)
 function changePin(){const o=document.getElementById('cp-old').value.trim(),n=document.getElementById('cp-new').value.trim(),c=document.getElementById('cp-conf').value.trim();if(!o||!n||!c){alert('Fill in all fields');return;}if(o!==CU.pin){alert('Current PIN is incorrect');return;}if(n.length!==4){alert('PIN must be exactly 4 digits');return;}if(n!==c){alert('New PINs do not match');return;}if(D.users[n]&&n!==CU.pin){alert('That PIN is already in use');return;}delete D.users[CU.pin];D.users[n]={name:CU.name,role:CU.role};CU.pin=n;save();['cp-old','cp-new','cp-conf'].forEach(id=>document.getElementById(id).value='');alert('PIN changed!');}
 
 // User Modal (Admin)
-function openAddUserModal(){document.getElementById('mo-usr-t').textContent='Add User';['usr-name','usr-pin','usr-old'].forEach(id=>document.getElementById(id).value='');document.getElementById('usr-role').value='officer';document.getElementById('usr-del-btn').style.display='none';openM('mo-user');}
-function editUser(pin){const u=D.users[pin];document.getElementById('mo-usr-t').textContent='Edit User';document.getElementById('usr-name').value=u.name;document.getElementById('usr-pin').value=pin;document.getElementById('usr-role').value=u.role;document.getElementById('usr-old').value=pin;document.getElementById('usr-del-btn').style.display=pin===CU.pin?'none':'';openM('mo-user');}
-function saveUser(){const name=document.getElementById('usr-name').value.trim();const pin=String(document.getElementById('usr-pin').value).trim();if(!name||!pin){alert('Name and PIN required');return;}if(pin.length!==4){alert('PIN must be exactly 4 digits');return;}const old=document.getElementById('usr-old').value;if(old&&old!==pin&&D.users[old])delete D.users[old];D.users[pin]={name,role:document.getElementById('usr-role').value};save();closeM('mo-user');renderSettings();}
-function deleteUser(){const old=document.getElementById('usr-old').value;if(!old||old===CU.pin){alert('Cannot remove yourself');return;}if(!confirm('Remove this user?'))return;delete D.users[old];save();closeM('mo-user');renderSettings();}
+var _usrReadOnly=false;
+function selUsrReadOnly(ro){_usrReadOnly=ro;var n=document.getElementById('usr-ro-n'),y=document.getElementById('usr-ro-y');if(n)n.className='tgb'+(!ro?' tin':'');if(y)y.className='tgb'+(ro?' tout':'');}
+function openAddUserModal(){if(isReadOnly()){blockedReadOnly();return;}document.getElementById('mo-usr-t').textContent='Add User';['usr-name','usr-pin','usr-old'].forEach(id=>document.getElementById(id).value='');document.getElementById('usr-role').value='officer';document.getElementById('usr-del-btn').style.display='none';selUsrReadOnly(false);openM('mo-user');}
+function editUser(pin){if(isReadOnly()){blockedReadOnly();return;}const u=D.users[pin];document.getElementById('mo-usr-t').textContent='Edit User';document.getElementById('usr-name').value=u.name;document.getElementById('usr-pin').value=pin;document.getElementById('usr-role').value=u.role;document.getElementById('usr-old').value=pin;document.getElementById('usr-del-btn').style.display=pin===CU.pin?'none':'';selUsrReadOnly(!!u.readOnly);openM('mo-user');}
+function saveUser(){if(isReadOnly()){blockedReadOnly();return;}const name=document.getElementById('usr-name').value.trim();const pin=String(document.getElementById('usr-pin').value).trim();if(!name||!pin){alert('Name and PIN required');return;}if(pin.length!==4){alert('PIN must be exactly 4 digits');return;}const old=document.getElementById('usr-old').value;if(old&&old!==pin&&D.users[old])delete D.users[old];D.users[pin]={name,role:document.getElementById('usr-role').value,readOnly:_usrReadOnly};if(old===CU.pin){CU.readOnly=_usrReadOnly;applyReadOnlyUI();}save();closeM('mo-user');renderSettings();}
+function deleteUser(){if(isReadOnly()){blockedReadOnly();return;}const old=document.getElementById('usr-old').value;if(!old||old===CU.pin){alert('Cannot remove yourself');return;}if(!confirm('Remove this user?'))return;delete D.users[old];save();closeM('mo-user');renderSettings();}
 
 // Settings
 function loadSettings(){document.getElementById('set-cb').value=D.openingClub||0;document.getElementById('set-hb').value=D.openingCharity||0;document.getElementById('set-fee').value=D.memberFee||2000;
@@ -2194,7 +2222,7 @@ function renderSettings(){
   });
   var _isl=document.getElementById('init-stock-list');if(_isl)_isl.innerHTML=shtml||'<div style="color:var(--muted);font-size:12px;padding:8px 0">No active products yet</div>';
   // Users
-  document.getElementById('user-list-s').innerHTML=Object.entries(D.users).map(([pin,u])=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bd)"><div style="flex:1"><div style="font-size:13px;font-weight:600">${u.name}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase">${u.role}</div></div><div style="font-size:11px;color:var(--dim)">${'&#9679;'.repeat(pin.length)}</div><button onclick="editUser('${pin}')" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:11px">Edit</button></div>`).join('');
+  document.getElementById('user-list-s').innerHTML=Object.entries(D.users).map(([pin,u])=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bd)"><div style="flex:1"><div style="font-size:13px;font-weight:600">${u.name}${u.readOnly?' <span style="font-size:9px;font-weight:700;color:var(--rl);background:rgba(192,57,43,.15);border:1px solid var(--red);border-radius:20px;padding:1px 6px;margin-left:2px">READ-ONLY</span>':''}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase">${u.role}</div></div><div style="font-size:11px;color:var(--dim)">${'&#9679;'.repeat(pin.length)}</div><button onclick="editUser('${pin}')" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:11px">Edit</button></div>`).join('');
   // Colours
   document.getElementById('colour-list-s').innerHTML=D.colours.map((c,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bd)"><span style="width:18px;height:18px;border-radius:50%;background:${c.hex};border:1px solid rgba(255,255,255,.2);flex-shrink:0"></span><div style="flex:1;font-size:12px">${c.name}</div><button onclick="delColour(${i})" style="background:none;border:none;color:var(--rl);font-size:13px;cursor:pointer">&#10005;</button></div>`).join('');
   // Suppliers
@@ -2210,7 +2238,7 @@ function resetStockKey(pid,vid,sz,col){
   save();renderStockMgr();renderSettings();
 }
 function saveInitStock(){save();alert('Initial stock saved!');renderStock();renderDash();}
-function saveLST(){D.lowStockThreshold=parseInt(document.getElementById('set-lst').value)||5;audit('SETTINGS','Low stock threshold changed to '+D.lowStockThreshold);save();alert('Threshold saved!');renderStock();renderDash();}
+function saveLST(){if(isReadOnly()){blockedReadOnly();return;}D.lowStockThreshold=parseInt(document.getElementById('set-lst').value)||5;audit('SETTINGS','Low stock threshold changed to '+D.lowStockThreshold);save();alert('Threshold saved!');renderStock();renderDash();}
 function revealOpeningBalances(){
   var entered=prompt('Re-enter your PIN to view/edit Opening Balances:');
   if(entered===null)return;
@@ -2219,8 +2247,9 @@ function revealOpeningBalances(){
   if(f)f.style.display='';
   if(b)b.style.display='none';
 }
-function saveBalances(){const ob=D.openingClub,oh=D.openingCharity;D.openingClub=parseFloat(document.getElementById('set-cb').value)||0;D.openingCharity=parseFloat(document.getElementById('set-hb').value)||0;audit('SETTINGS','Opening balances changed',{club:ob,charity:oh},{club:D.openingClub,charity:D.openingCharity});save();renderDash();alert('Balances saved!');}
+function saveBalances(){if(isReadOnly()){blockedReadOnly();return;}const ob=D.openingClub,oh=D.openingCharity;D.openingClub=parseFloat(document.getElementById('set-cb').value)||0;D.openingCharity=parseFloat(document.getElementById('set-hb').value)||0;audit('SETTINGS','Opening balances changed',{club:ob,charity:oh},{club:D.openingClub,charity:D.openingCharity});save();renderDash();alert('Balances saved!');}
 function saveProductCategories(){
+  if(isReadOnly()){blockedReadOnly();return;}
   var el=document.getElementById('set-prod-cats');
   if(!el)return;
   var cats=el.value.split('\n').map(function(s){s=s.trim();var parts=s.split('|');return parts.length>=2?{id:parts[0].trim(),label:parts[1].trim()}:null;}).filter(Boolean);
@@ -2230,6 +2259,7 @@ function saveProductCategories(){
   save();alert('Product categories saved!');
 }
 function saveSizes(){
+  if(isReadOnly()){blockedReadOnly();return;}
   var sz=document.getElementById('set-sizes');
   if(!sz)return;
   var newSizes=sz.value.split(',').map(function(s){return s.trim();}).filter(Boolean);
@@ -2240,6 +2270,7 @@ function saveSizes(){
   save();alert('Sizes saved!');
 }
 function saveEventTypes(){
+  if(isReadOnly()){blockedReadOnly();return;}
   var et=document.getElementById('set-ev-types');
   if(et)D.eventTypes=et.value.split(',').map(function(s){return s.trim().toLowerCase();}).filter(Boolean);
   audit('SETTINGS','Event types updated');
@@ -2255,8 +2286,9 @@ function saveCategories(){
   save();
   alert('Categories saved!');
 }
-function saveFee(){const oldFee=D.memberFee;D.memberFee=parseFloat(document.getElementById('set-fee').value)||2000;audit('SETTINGS','Annual fee changed',{fee:oldFee},{fee:D.memberFee});save();alert('Fee saved!');document.getElementById('fee-d').textContent=(D.memberFee).toLocaleString();}
+function saveFee(){if(isReadOnly()){blockedReadOnly();return;}const oldFee=D.memberFee;D.memberFee=parseFloat(document.getElementById('set-fee').value)||2000;audit('SETTINGS','Annual fee changed',{fee:oldFee},{fee:D.memberFee});save();alert('Fee saved!');document.getElementById('fee-d').textContent=(D.memberFee).toLocaleString();}
 function saveSync(){
+  if(isReadOnly()){blockedReadOnly();return;}
   var url=document.getElementById('set-su').value.trim();
   var key=document.getElementById('set-sk').value.trim();
   if(!url||!key){alert('Please enter both the Project URL and Anon Key.');return;}
@@ -2319,7 +2351,9 @@ function manualSync(){
       loadSettings();renderAll();
       setDot('online');hideOffline();
     } else if(result==='empty'){
-      // Remote is empty - safe to push local data up
+      // Remote is empty - safe to push local data up (read-only users can
+      // still refresh/pull above, but must not be the one to push data)
+      if(isReadOnly()){setDot('online');return;}
       syncToSupabase(function(ok){
         setDot(ok?'online':'offline');
         if(!ok)showOffline();
@@ -2331,10 +2365,10 @@ function manualSync(){
     }
   });
 }
-function addColour(){const name=document.getElementById('new-colour').value.trim();const hex=document.getElementById('new-colour-hex').value;if(!name)return;if(!D.colours.find(c=>c.name===name)){D.colours.push({name,hex});audit('SETTINGS','Colour added: '+name+' ('+hex+')');}else{alert('Colour already exists.');return;}document.getElementById('new-colour').value='';save();renderSettings();}
-function delColour(i){const c=D.colours[i];if(c)audit('SETTINGS','Colour removed: '+c.name);D.colours.splice(i,1);save();renderSettings();}
+function addColour(){if(isReadOnly()){blockedReadOnly();return;}const name=document.getElementById('new-colour').value.trim();const hex=document.getElementById('new-colour-hex').value;if(!name)return;if(!D.colours.find(c=>c.name===name)){D.colours.push({name,hex});audit('SETTINGS','Colour added: '+name+' ('+hex+')');}else{alert('Colour already exists.');return;}document.getElementById('new-colour').value='';save();renderSettings();}
+function delColour(i){if(isReadOnly()){blockedReadOnly();return;}const c=D.colours[i];if(c)audit('SETTINGS','Colour removed: '+c.name);D.colours.splice(i,1);save();renderSettings();}
 function addSupplier(){const s=document.getElementById('new-sup').value.trim();if(!s)return;if(!D.suppliers.includes(s))D.suppliers.push(s);document.getElementById('new-sup').value='';save();renderSettings();}
-function delSup(sid){var idx=D.suppliers.findIndex(function(x){return x.id===sid;});if(idx<0)return;var s=D.suppliers[idx];if(!confirm('Delete supplier: '+s.name+'?'))return;audit('SETTINGS','Supplier removed: '+s.name);D.suppliers.splice(idx,1);save();renderSettings();}
+function delSup(sid){if(isReadOnly()){blockedReadOnly();return;}var idx=D.suppliers.findIndex(function(x){return x.id===sid;});if(idx<0)return;var s=D.suppliers[idx];if(!confirm('Delete supplier: '+s.name+'?'))return;audit('SETTINGS','Supplier removed: '+s.name);D.suppliers.splice(idx,1);save();renderSettings();}
 
 // Reports
 function showReport(type){
@@ -2868,6 +2902,7 @@ function rTabs(){
   ${done.length?`<div class="divider"></div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Settled (${done.length})</div>${done.slice(0,20).map(t=>tabRow(t,false)).join('')}`:''}`;}
 
 function openEditTab(id){
+  if(isReadOnly()){blockedReadOnly();return;}
   const tab=(D.tabs||[]).find(t=>t.id===id);
   if(!tab)return;
   document.getElementById('et-id').value=id;
@@ -2883,6 +2918,7 @@ function openEditTab(id){
   openM('mo-edittab');
 }
 function saveEditTab(){
+  if(isReadOnly()){blockedReadOnly();return;}
   const id=document.getElementById('et-id').value;
   const tab=(D.tabs||[]).find(t=>t.id===id);
   if(!tab)return;
@@ -2909,6 +2945,7 @@ function saveEditTab(){
   save();closeM('mo-edittab');renderTabLedger();
 }
 function deleteTab(){
+  if(isReadOnly()){blockedReadOnly();return;}
   var id=document.getElementById('et-id').value;
   var tab=(D.tabs||[]).find(function(t){return t.id===id;});
   if(!tab)return;
@@ -2924,6 +2961,7 @@ function deleteTab(){
   save();closeM('mo-edittab');renderAll();
 }
 function openSettleTab(id){
+  if(isReadOnly()){blockedReadOnly();return;}
   const tab=(D.tabs||[]).find(t=>t.id===id);if(!tab)return;
   document.getElementById('st-id').value=id;
   document.getElementById('st-date').value=nd();
@@ -2932,6 +2970,7 @@ function openSettleTab(id){
   openM('mo-settletab');
 }
 function settleTab(){
+  if(isReadOnly()){blockedReadOnly();return;}
   const id=document.getElementById('st-id').value;
   const tab=(D.tabs||[]).find(t=>t.id===id);if(!tab)return;
   const settledDate=document.getElementById('st-date').value;
@@ -3361,12 +3400,12 @@ function exportAuditLog(){
   audit('AUDIT_EXPORT','Exported '+toExport.length+' entries before '+fd(cutoff)+'. Entries deleted.');
   save();showReport('audit');
 }
-function openAddSupplier(){document.getElementById('mo-sup-t').textContent='Add Supplier';document.getElementById('sup-id').value='';['sup-name','sup-contact','sup-phone','sup-email','sup-website','sup-address'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('sup-save-btn').textContent='Add Supplier';openM('mo-supplier');}
-function openEditSupplier(sid){var s=D.suppliers.find(function(x){return x.id===sid;});if(!s)return;document.getElementById('mo-sup-t').textContent='Edit Supplier';document.getElementById('sup-id').value=sid;document.getElementById('sup-name').value=s.name||'';document.getElementById('sup-contact').value=s.contact||'';document.getElementById('sup-phone').value=s.phone||'';document.getElementById('sup-email').value=s.email||'';document.getElementById('sup-website').value=s.website||'';document.getElementById('sup-address').value=s.address||'';document.getElementById('sup-save-btn').textContent='Save Changes';openM('mo-supplier');}
+function openAddSupplier(){if(isReadOnly()){blockedReadOnly();return;}document.getElementById('mo-sup-t').textContent='Add Supplier';document.getElementById('sup-id').value='';['sup-name','sup-contact','sup-phone','sup-email','sup-website','sup-address'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('sup-save-btn').textContent='Add Supplier';openM('mo-supplier');}
+function openEditSupplier(sid){if(isReadOnly()){blockedReadOnly();return;}var s=D.suppliers.find(function(x){return x.id===sid;});if(!s)return;document.getElementById('mo-sup-t').textContent='Edit Supplier';document.getElementById('sup-id').value=sid;document.getElementById('sup-name').value=s.name||'';document.getElementById('sup-contact').value=s.contact||'';document.getElementById('sup-phone').value=s.phone||'';document.getElementById('sup-email').value=s.email||'';document.getElementById('sup-website').value=s.website||'';document.getElementById('sup-address').value=s.address||'';document.getElementById('sup-save-btn').textContent='Save Changes';openM('mo-supplier');}
 function viewSupplier(sid){var s=D.suppliers.find(function(x){return x.id===sid;});if(!s)return;document.getElementById('sup-view-title').textContent=s.name;var body='';if(s.contact)body+='<div class="brow"><span class="blbl">Contact</span><span>'+s.contact+'</span></div>';if(s.phone)body+='<div class="brow"><span class="blbl">Phone</span><a href="tel:'+s.phone+'" style="color:var(--gold)">'+s.phone+'</a></div>';if(s.email)body+='<div class="brow"><span class="blbl">Email</span><a href="mailto:'+s.email+'" style="color:var(--gold)">'+s.email+'</a></div>';if(s.website)body+='<div class="brow"><span class="blbl">Website</span><a href="'+s.website+'" target="_blank" style="color:var(--gold)">'+s.website+'</a></div>';if(s.address)body+='<div class="brow"><span class="blbl">Address</span><span style="font-size:11px">'+s.address+'</span></div>';if(!body)body='<div style="color:var(--muted);font-size:12px;text-align:center;padding:12px">No additional details recorded.</div>';document.getElementById('sup-view-body').innerHTML=body;var eb=document.getElementById('sup-edit-btn');if(eb){var isOfficer=CU&&(CU.role==='admin'||CU.role==='officer'||CU.role==='president'||CU.role==='vice_president'||CU.role==='treasurer');eb.style.display=isOfficer?'':'none';eb.onclick=function(){closeM('mo-supplier-view');openEditSupplier(sid);};}openM('mo-supplier-view');}
-function saveSupplier(){var name=document.getElementById('sup-name').value.trim();if(!name){alert('Supplier name is required.');return;}var sid=document.getElementById('sup-id').value;var data={name:name,contact:document.getElementById('sup-contact').value.trim(),phone:document.getElementById('sup-phone').value.trim(),email:document.getElementById('sup-email').value.trim(),website:document.getElementById('sup-website').value.trim(),address:document.getElementById('sup-address').value.trim()};if(sid){var s=D.suppliers.find(function(x){return x.id===sid;});if(s){var before={name:s.name};Object.assign(s,data);audit('SETTINGS','Supplier edited: '+name,before,{name:name});}}else{if(D.suppliers.find(function(x){return x.name.toLowerCase()===name.toLowerCase();})){alert('Supplier already exists.');return;}data.id=uid();D.suppliers.push(data);audit('SETTINGS','Supplier added: '+name);}save();closeM('mo-supplier');renderSettings();}
+function saveSupplier(){if(isReadOnly()){blockedReadOnly();return;}var name=document.getElementById('sup-name').value.trim();if(!name){alert('Supplier name is required.');return;}var sid=document.getElementById('sup-id').value;var data={name:name,contact:document.getElementById('sup-contact').value.trim(),phone:document.getElementById('sup-phone').value.trim(),email:document.getElementById('sup-email').value.trim(),website:document.getElementById('sup-website').value.trim(),address:document.getElementById('sup-address').value.trim()};if(sid){var s=D.suppliers.find(function(x){return x.id===sid;});if(s){var before={name:s.name};Object.assign(s,data);audit('SETTINGS','Supplier edited: '+name,before,{name:name});}}else{if(D.suppliers.find(function(x){return x.name.toLowerCase()===name.toLowerCase();})){alert('Supplier already exists.');return;}data.id=uid();D.suppliers.push(data);audit('SETTINGS','Supplier added: '+name);}save();closeM('mo-supplier');renderSettings();}
 
-function saveBackupSettings(){var raw=document.getElementById('set-backup-days').value;var days=raw===''?7:parseInt(raw);
+function saveBackupSettings(){if(isReadOnly()){blockedReadOnly();return;}var raw=document.getElementById('set-backup-days').value;var days=raw===''?7:parseInt(raw);
   var nameEl=document.getElementById('set-backup-name');
   D.backupFilename=(nameEl&&nameEl.value.trim())?nameEl.value.trim():'RE-Backup';
   D.backupReminderDays=days;
@@ -3395,6 +3434,7 @@ function exportBackup(){
   alert('Backup complete! File saved: '+filename);
 }
 function restoreBackup(){
+  if(isReadOnly()){blockedReadOnly();return;}
   var fi=document.getElementById('restore-file');if(!fi||!fi.files||!fi.files.length){alert('Please select a backup JSON file first.');return;}
   var c1=prompt('WARNING: This will overwrite ALL current data including Supabase.\nType CONFIRM to proceed:');
   if(c1!=='CONFIRM'){alert('Restore cancelled.');return;}
@@ -3437,6 +3477,7 @@ function selTxeAcc(a){_txeAcc=a;document.getElementById('txe-acc-c').className='
 function selTxePay(v){document.getElementById('txe-pay-paid').className='tgb'+(v==='paid'?' tin':'');document.getElementById('txe-pay-unpaid').className='tgb'+(v==='unpaid'?' tout':'');}
 function updateTxeCats(){const cats=_txeDir==='in'?CATS_I:CATS_O;const sel=document.getElementById('txe-cat');if(sel)sel.innerHTML=cats.map(c=>'<option value="'+c+'">'+(CM[c]||c)+'</option>').join('');}
 function openTxEdit(id){
+  if(isReadOnly()){blockedReadOnly();return;}
   const tx=D.transactions.find(t=>t.id===id);if(!tx)return;
   var delBtn=document.getElementById('txe-del-btn');
   if(delBtn)delBtn.style.display=CU&&CU.role==='admin'?'':'none';
@@ -3461,6 +3502,7 @@ function openTxEdit(id){
   openM('mo-tx-edit');
 }
 function saveTxEdit(){
+  if(isReadOnly()){blockedReadOnly();return;}
   const id=document.getElementById('txe-id').value;
   const tx=D.transactions.find(t=>t.id===id);if(!tx)return;
   const before={amount:tx.amount,description:tx.description,paid:tx.paid,eventId:tx.eventId||''};
@@ -3488,6 +3530,7 @@ function saveTxEdit(){
   save();closeM('mo-tx-edit');renderAll();
 }
 function deleteTxEdit(){
+  if(isReadOnly()){blockedReadOnly();return;}
   const id=document.getElementById('txe-id').value;
   if(!CU||CU.role!=='admin'){alert('Only admin can delete transactions.');return;}
   if(!confirm('Delete this transaction permanently?'))return;
@@ -3517,8 +3560,8 @@ function renderSuppliers(){
   if(!sorted.length){el.innerHTML='<div class="empty"><div class="ei">&#128230;</div>No suppliers yet</div>';return;}
   el.innerHTML=sorted.map(function(s,i){
     var details=[s.contact,s.phone,s.email].filter(Boolean).join(' • ');
-    var editBtn=(CU&&(CU.role==='admin'||CU.role==='officer'||CU.role==='president'||CU.role==='vice_president'||CU.role==='treasurer'))?'<button onclick="_supEdit('+i+')" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:11px;flex-shrink:0">Edit</button>':'';
-    var delBtn=CU&&CU.role==='admin'?'<button onclick="_supDel('+i+')" style="background:none;border:none;color:var(--rl);font-size:13px;cursor:pointer;flex-shrink:0">&#10005;</button>':'';
+    var editBtn=(CU&&(CU.role==='admin'||CU.role==='officer'||CU.role==='president'||CU.role==='vice_president'||CU.role==='treasurer'))?'<button class="ro-hide" onclick="_supEdit('+i+')" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:11px;flex-shrink:0">Edit</button>':'';
+    var delBtn=CU&&CU.role==='admin'?'<button class="ro-hide" onclick="_supDel('+i+')" style="background:none;border:none;color:var(--rl);font-size:13px;cursor:pointer;flex-shrink:0">&#10005;</button>':'';
     return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bd)">'
       +'<div style="flex:1;min-width:0;cursor:pointer" onclick="_supView('+i+')">'
       +'<div style="font-size:13px;font-weight:600">'+s.name+'</div>'
@@ -3538,7 +3581,7 @@ function renderProducts(){
   if(!_prodArr.length){el.innerHTML='<div class="empty"><div class="ei">&#128085;&#65039;</div>No products yet</div>';return;}
   el.innerHTML=_prodArr.map(function(p,i){
     var varList=p.variants.map(function(v){return v.name;}).join(', ');
-    var editBtn=CU&&CU.role==='admin'?'<button onclick="_prodEdit('+i+')" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:11px;flex-shrink:0">Edit</button>':'';
+    var editBtn=CU&&CU.role==='admin'?'<button class="ro-hide" onclick="_prodEdit('+i+')" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:11px;flex-shrink:0">Edit</button>':'';
     return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bd)">'
       +'<div style="flex:1;min-width:0">'
       +'<div style="font-size:13px;font-weight:600'+(p.archived?';color:var(--muted)':'')+'">'+p.name+(p.archived?' <span style="font-size:10px">(archived)</span>':'')+'</div>'
@@ -3753,6 +3796,7 @@ function updatePOLIField(idx,field,value){
 }
 
 function openNewPO(){
+  if(isReadOnly()){blockedReadOnly();return;}
   _poLineItems=[];
   renderPOLineItems();
   var estDiv=document.getElementById('po-cost-estimate');if(estDiv)estDiv.style.display='none';
@@ -3840,6 +3884,7 @@ function updatePOProductFields(){
 }
 
 function savePO(status){
+  if(isReadOnly()){blockedReadOnly();return;}
   try{
   if(!D.purchaseOrders)D.purchaseOrders=[];
   var desc=document.getElementById('po-desc').value.trim();
@@ -3912,6 +3957,7 @@ function savePO(status){
 }
 
 function openEditPO(id){
+  if(isReadOnly()){blockedReadOnly();return;}
   var po=D.purchaseOrders.find(function(p){return p.id===id;});
   if(!po)return;
   document.getElementById('mo-po-t').textContent='Edit Purchase Order';
@@ -3982,6 +4028,7 @@ function openEditPO(id){
 }
 
 function openPOPayment(id){
+  if(isReadOnly()){blockedReadOnly();return;}
   var po=D.purchaseOrders.find(function(p){return p.id===id;});
   if(!po)return;
   document.getElementById('pop-po-id').value=id;
@@ -3997,6 +4044,7 @@ function openPOPayment(id){
 }
 
 function savePOPayment(){
+  if(isReadOnly()){blockedReadOnly();return;}
   var id=document.getElementById('pop-po-id').value;
   var po=D.purchaseOrders.find(function(p){return p.id===id;});
   if(!po)return;
@@ -4050,6 +4098,7 @@ function savePOPayment(){
 }
 
 function openPOReceive(id){
+  if(isReadOnly()){blockedReadOnly();return;}
   var po=D.purchaseOrders.find(function(p){return p.id===id;});
   if(!po)return;
   var items=po.lineItems&&po.lineItems.length?po.lineItems:(po.productId?[{productId:po.productId,variantId:po.variantId,size:po.size,colour:po.colour,qty:po.qty}]:[]);
@@ -4075,6 +4124,7 @@ function openPOReceive(id){
 }
 
 function confirmPOReceive(){
+  if(isReadOnly()){blockedReadOnly();return;}
   var id=document.getElementById('por-po-id').value;
   var po=D.purchaseOrders.find(function(p){return p.id===id;});
   if(!po)return;
@@ -4173,7 +4223,7 @@ function openPODetail(po){
   }
 
   // Action buttons
-  html+='<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">';
+  html+='<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px" class="ro-hide">';
   if(canEdit)html+='<button onclick="editPOFromDetail(window._currentPO.id)" class="btn btn-out" style="font-size:11px;padding:5px 10px">&#9998; Edit</button>';
   if(canPay)html+='<button onclick="payPOFromDetail(window._currentPO.id)" class="btn btn-gold" style="font-size:11px;padding:5px 10px">&#128176; Record Payment</button>';
   if(canReceive)html+='<button onclick="receivePOFromDetail(window._currentPO.id)" class="btn" style="font-size:11px;padding:5px 10px;background:var(--grn);border-color:var(--grn);color:#fff">&#128230; Receive Stock</button>';
@@ -4196,6 +4246,7 @@ function receivePOFromDetail(id){closeM('mo-report');openPOReceive(id);}
 function openPODetailById(id){var po=D.purchaseOrders.find(function(p){return p.id===id;});openPODetail(po);}
 
 function deletePO(id){
+  if(isReadOnly()){blockedReadOnly();return;}
   if(!CU||CU.role!=='admin'){alert('Admin only.');return;}
   if(!confirm('Delete this purchase order? Payments already recorded in the Ledger will remain.'))return;
   D.purchaseOrders=D.purchaseOrders.filter(function(p){return p.id!==id;});
@@ -4221,6 +4272,7 @@ function getAssemblyGroups(){
 }
 
 function createNewAssemblyGroup(){
+  if(isReadOnly()){blockedReadOnly();return;}
   var name=prompt('Assembly group name (e.g. Support Hat Batch 1):');
   if(!name||!name.trim())return;
   var id=name.trim().toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'');
@@ -4260,6 +4312,7 @@ function getBOMGroupStatus(groupId){
 }
 
 function openAssembleModal(groupId){
+  if(isReadOnly()){blockedReadOnly();return;}
   var status=getBOMGroupStatus(groupId);
   if(!status){alert('Assembly group not found.');return;}
   if(status.assembled){alert('This batch has already been assembled.');return;}
@@ -4290,6 +4343,7 @@ function openAssembleModal(groupId){
 }
 
 function confirmAssemble(){
+  if(isReadOnly()){blockedReadOnly();return;}
   var groupId=document.getElementById('asm-group-id').value;
   var status=getBOMGroupStatus(groupId);
   if(!status)return;
@@ -4420,6 +4474,7 @@ function renderStockMgr(){
 }
 
 function openStockEdit(el){
+  if(isReadOnly()){blockedReadOnly();return;}
   var pid=el.dataset.pid,vid=el.dataset.vid;
   var sz=el.dataset.sz==='__none__'?null:el.dataset.sz;
   var col=el.dataset.col||'';
@@ -4438,6 +4493,7 @@ function openStockEdit(el){
 }
 
 function saveStockEdit(){
+  if(isReadOnly()){blockedReadOnly();return;}
   var pid=document.getElementById('se-pid').value;
   var vid=document.getElementById('se-vid').value;
   var szRaw=document.getElementById('se-sz').value;
@@ -4553,6 +4609,7 @@ function setCfgList(tab,newList){
 }
 
 function cfgAddItem(){
+  if(isReadOnly()){blockedReadOnly();return;}
   var cfg=getCfgData(_cfgTab);
   document.getElementById('mo-cfg-t').textContent='Add '+cfg.label;
   document.getElementById('cfg-edit-type').value=_cfgTab;
@@ -4571,6 +4628,7 @@ function cfgAddItem(){
 }
 
 function cfgEditItem(idx){
+  if(isReadOnly()){blockedReadOnly();return;}
   var cfg=getCfgData(_cfgTab);
  
   var lbl2=document.getElementById('cfg-edit-label-lbl');if(lbl2)lbl2.textContent=cfg.hasAccess?'Role Name':(_cfgTab==='assembly'?'Group Name':'Label');
@@ -4602,6 +4660,7 @@ function cfgEditItem(idx){
 }
 
 function saveCfgEdit(){
+  if(isReadOnly()){blockedReadOnly();return;}
   var tab=document.getElementById('cfg-edit-type').value;
   var idx=parseInt(document.getElementById('cfg-edit-idx').value);
   var cfg=getCfgData(tab);
@@ -4639,6 +4698,7 @@ function saveCfgEdit(){
 }
 
 function cfgDeleteItem(idx){
+  if(isReadOnly()){blockedReadOnly();return;}
   var cfg=getCfgData(_cfgTab);
   var item=cfg.list[idx];
   var label=typeof item==='object'?(item.label||item.name||JSON.stringify(item)):item;
