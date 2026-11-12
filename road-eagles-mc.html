@@ -196,7 +196,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.63</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.64</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -4927,7 +4927,7 @@ window.m54RecordRefund=function(tabId){if(isReadOnly()){blockedReadOnly();return
 
 
 <script>
-// v3.63 - hide voided ledger transactions after linked merchandise tab deletion
+// v3.64 - hide voided ledger transactions after linked merchandise tab deletion
 (function(){
   var priorOpenTxEdit=window.openTxEdit;
   window.openTxEdit=function(id){
@@ -5019,6 +5019,57 @@ window.m54RecordRefund=function(tabId){if(isReadOnly()){blockedReadOnly();return
 })();
 </script>
 
-<!-- v3.63: renderLedger now excludes voided entries so deleting a merchandise tab also removes its linked payment/refund entries from the visible ledger. Financial records remain retained for audit and excluded from balances. -->
+<!-- v3.64: renderLedger now excludes voided entries so deleting a merchandise tab also removes its linked payment/refund entries from the visible ledger. Financial records remain retained for audit and excluded from balances. -->
+<script>
+// v3.64: correct part-payment sale routing and force immediate ledger refresh after deletion.
+(function(){
+  window.m54SaveNewSale=function(){
+    if(isReadOnly()){blockedReadOnly();return;}
+    if(!_m54Lines.length){alert('Add at least one item.');return;}
+    var memberId=document.getElementById('sale-tab-member').value;
+    var mem=D.members.find(x=>x.id===memberId);
+    for(var i=0;i<_m54Lines.length;i++){
+      var l=_m54Lines[i],p=D.products.find(x=>x.id===l.productId);
+      if(!p||!p.variants.some(v=>v.id===l.variantId)||!Number.isInteger(Number(l.qty))||l.qty<1||Number(l.unitPrice)<0){alert('Check item '+(i+1));return;}
+      if(p.memberOnly&&!memberId){alert(p.name+' requires a member.');return;}
+    }
+    var lines=_m54Lines.map(l=>Object.assign({},l));
+    var total=m54Total(lines),date=document.getElementById('sale-date').value;
+    var account=document.getElementById('sale-account').value,eventId=document.getElementById('sale-ev').value;
+    var notes=document.getElementById('sale-notes').value.trim(),desc=lines.map(m54Desc).join('; ');
+    var initial=0;
+    if(_payMode==='partial'||_payMode==='tab'){
+      initial=Number(document.getElementById('m54-initial-payment').value||0);
+      if(!Number.isFinite(initial)||initial<0||initial>total+0.009){alert('Initial payment must be between zero and '+thb(total)+'.');return;}
+      if(_payMode==='partial'&&initial<=0){alert('Enter the part payment received now.');return;}
+    }
+    // All validation is complete before changing stock or creating records.
+    lines.forEach(l=>adjStock(l.productId,l.variantId,l.size||null,l.colour||'',l.qty,'sold'));
+    if(_payMode==='partial'||_payMode==='tab'){
+      var saleId=uid();
+      var t={id:uid(),saleId:saleId,lines:lines,account:account,memberId:memberId,memberName:mem?mem.name:'Unknown',description:desc,amount:total,date:date,created:ni(),enteredBy:CU.name,settled:false,eventId:eventId,notes:notes,payments:[],refunds:[],version:1};
+      D.tabs.push(t);
+      if(initial)m54RecordPayment(t,initial,date,_payMode==='partial'?'Initial part payment':'Initial payment');
+      audit('SALE_TAB_CREATE',desc+' '+thb(total),null,{tabId:t.id,saleId:saleId,initialPayment:initial,outstanding:m54Balance(t)});
+    }else{
+      D.transactions.push({id:uid(),saleId:uid(),lines:lines,account:account,direction:'in',category:'merchandise',amount:total,description:desc,date:date,created:ni(),notes:notes,enteredBy:CU.name,eventId:eventId,responsibleMemberId:memberId||'',responsibleMemberName:mem?mem.name:''});
+      audit('SALE_CREATE',desc+' '+thb(total));
+    }
+    save();closeM('mo-sale');renderAll();
+  };
+
+  // Refresh the visible ledger immediately after a deletion, not only after tab navigation.
+  var priorDeleteTxEditNow=window.deleteTxEdit;
+  window.deleteTxEdit=function(){
+    var id=document.getElementById('txe-id')&&document.getElementById('txe-id').value;
+    var beforeCount=(D.transactions||[]).length;
+    priorDeleteTxEditNow();
+    if((D.transactions||[]).length!==beforeCount){
+      renderLedger();renderDash();
+    }
+  };
+})();
+</script>
+
 </body>
 </html>
