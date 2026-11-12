@@ -196,7 +196,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.59</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.60</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -4871,5 +4871,59 @@ var _m54OriginalDeleteTxEdit=window.deleteTxEdit;window.deleteTxEdit=function(){
 window.m54RecordRefund=function(tabId){if(isReadOnly()){blockedReadOnly();return;}var t=D.tabs.find(x=>x.id===tabId);if(!t)return;var due=Math.max(0,m54Paid(t)-m54Refunded(t)-Number(t.amount||0));if(due<=0.009){alert('No refund is due.');return;}var raw=prompt('Refund amount (maximum '+thb(due)+')',String(due));if(raw===null)return;var amt=Number(raw);if(!Number.isFinite(amt)||amt<=0||amt>due+0.009){alert('Enter a valid refund amount up to '+thb(due));return;}var date=prompt('Refund date (YYYY-MM-DD)',nd());if(!date)return;if(!t.refunds)t.refunds=[];var ref={id:uid(),amount:amt,date:date,by:CU.name,ts:ni(),ledgerTxId:uid(),reversed:false};t.refunds.push(ref);D.transactions.push({id:ref.ledgerTxId,tabId:t.id,refundId:ref.id,account:t.account==='charity'?'charity':'club',direction:'out',category:'merchandise',amount:amt,description:'Merchandise tab refund: '+t.description,date:date,created:ni(),enteredBy:CU.name,paid:true});t.creditDue=Math.max(0,due-amt);audit('TAB_REFUND','Refunded '+thb(amt)+' for '+t.description);save();renderAll();openEditTab(tabId);};
 // Legacy settled tabs remain untouched; v3.57 payments each have a unique linked ledger row.
 </script>
+
+<script>
+// v3.60 - unified merchandise deletion, linked ledger voiding and consistent action spacing
+(function(){
+  function m60IsAdmin(){if(isReadOnly()){blockedReadOnly();return false;}if(!CU||CU.role!=='admin'){alert('Only admin can delete merchandise records.');return false;}return true;}
+  function m60VoidLinkedTabEntries(t){
+    var payIds=new Set((t.payments||[]).map(p=>p.ledgerTxId).filter(Boolean));
+    var refundIds=new Set((t.refunds||[]).map(r=>r.ledgerTxId).filter(Boolean));
+    var count=0;
+    (D.transactions||[]).forEach(function(tx){
+      var linked=tx.tabId===t.id || (t.saleId&&tx.saleId===t.saleId) || payIds.has(tx.id) || refundIds.has(tx.id);
+      if(linked&&!tx.voided){tx.voided=true;tx.voidedAt=ni();tx.voidedBy=CU.name;count++;}
+    });
+    (t.payments||[]).forEach(function(pay){if(!pay.reversed){pay.reversed=true;pay.reversedAt=ni();pay.reversedBy=CU.name;}});
+    (t.refunds||[]).forEach(function(ref){if(!ref.reversed){ref.reversed=true;ref.reversedAt=ni();ref.reversedBy=CU.name;}});
+    return count;
+  }
+  function m60DeleteTab(t){
+    if(!m60IsAdmin())return;
+    var before=JSON.parse(JSON.stringify(t)), paid=m54Paid(t), refunded=m54Refunded(t), lines=m54Lines(t), linked=(D.transactions||[]).filter(tx=>!tx.voided&&(tx.tabId===t.id||(t.saleId&&tx.saleId===t.saleId)||(t.payments||[]).some(p=>p.ledgerTxId===tx.id)||(t.refunds||[]).some(r=>r.ledgerTxId===tx.id))).length;
+    var msg='Delete this merchandise tab?\n\nSale total: '+thb(t.amount)+'\nPayments recorded: '+thb(paid)+'\nRefunds recorded: '+thb(refunded)+'\nLinked ledger entries to void: '+linked+'\n\nStock will be restored. The tab will be removed and its financial entries marked VOID (not erased). An audit record will be retained.';
+    if(!confirm(msg))return;
+    lines.forEach(l=>adjStock(l.productId,l.variantId,l.size||null,l.colour||'',-Number(l.qty||0),'sold'));
+    var voided=m60VoidLinkedTabEntries(t);
+    audit('MERCHANDISE_DELETE','Deleted tab '+t.description+'; sale '+thb(t.amount)+'; payments '+thb(paid)+'; refunds '+thb(refunded)+'; ledger entries voided '+voided,{tab:before},{stockRestored:true,ledgerEntriesVoided:voided});
+    D.tabs=D.tabs.filter(x=>x.id!==t.id);
+    save();closeM('mo-sale');closeM('mo-tx-edit');renderAll();
+  }
+  window.deleteTab=function(){var t=D.tabs.find(x=>x.id===_m54TabId);if(!t)return;m60DeleteTab(t);};
+  var oldDeleteTxEdit=window.deleteTxEdit;
+  window.deleteTxEdit=function(){
+    var id=document.getElementById('txe-id')&&document.getElementById('txe-id').value;
+    var tx=(D.transactions||[]).find(x=>x.id===id);if(!tx){oldDeleteTxEdit();return;}
+    if(tx.tabId){var tab=D.tabs.find(t=>t.id===tx.tabId);if(tab){m60DeleteTab(tab);return;}alert('This ledger entry is linked to a tab that is no longer present. No change has been made.');return;}
+    if(tx.paymentId||tx.refundId){alert('This is a linked merchandise payment/refund. Open its merchandise tab and use Delete Tab to remove the complete sale and all linked entries together.');if(tx.tabId)openEditTab(tx.tabId);return;}
+    if(tx.category==='merchandise'&&tx.direction!=='out'){
+      if(!m60IsAdmin())return;
+      var beforeTx=JSON.parse(JSON.stringify(tx)),lines=m54Lines(tx),msg='Delete this completed merchandise sale?\n\nSale total: '+thb(tx.amount)+'\nStock will be restored and the ledger entry marked VOID. An audit record will be retained.';
+      if(!confirm(msg))return;
+      lines.forEach(l=>adjStock(l.productId,l.variantId,l.size||null,l.colour||'',-Number(l.qty||0),'sold'));
+      tx.voided=true;tx.voidedAt=ni();tx.voidedBy=CU.name;
+      audit('MERCHANDISE_DELETE','Voided completed merchandise sale '+tx.description,{transaction:beforeTx},{stockRestored:true});
+      save();closeM('mo-tx-edit');renderAll();return;
+    }
+    oldDeleteTxEdit();
+  };
+  // Keep the payment, delete, save and undo actions on a uniform vertical rhythm.
+  var oldOpenEditTab=window.openEditTab;
+  window.openEditTab=function(id){oldOpenEditTab(id);var modal=document.querySelector('#mo-sale .modal');if(!modal)return;
+    modal.querySelectorAll('button').forEach(function(b){var label=(b.textContent||'').trim();if(label.indexOf('Add Payment')>=0||label.indexOf('Delete Tab')>=0||label==='Save Changes'||label.indexOf('Undo unsaved changes')>=0){b.style.marginTop='10px';b.style.marginBottom='0';b.style.width='100%';}});
+  };
+})();
+</script>
+
 </body>
 </html>
