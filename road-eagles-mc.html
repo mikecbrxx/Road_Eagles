@@ -196,7 +196,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.60</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.61</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -4921,6 +4921,70 @@ window.m54RecordRefund=function(tabId){if(isReadOnly()){blockedReadOnly();return
   var oldOpenEditTab=window.openEditTab;
   window.openEditTab=function(id){oldOpenEditTab(id);var modal=document.querySelector('#mo-sale .modal');if(!modal)return;
     modal.querySelectorAll('button').forEach(function(b){var label=(b.textContent||'').trim();if(label.indexOf('Add Payment')>=0||label.indexOf('Delete Tab')>=0||label==='Save Changes'||label.indexOf('Undo unsaved changes')>=0){b.style.marginTop='10px';b.style.marginBottom='0';b.style.width='100%';}});
+  };
+})();
+</script>
+
+
+<script>
+// v3.61 - administrator cleanup for orphaned merchandise ledger entries and complete sale-linked voiding
+(function(){
+  var priorOpenTxEdit=window.openTxEdit;
+  window.openTxEdit=function(id){
+    var tx=(D.transactions||[]).find(x=>x.id===id);
+    if(tx&&(tx.paymentId||tx.refundId)&&tx.tabId){
+      var parent=(D.tabs||[]).find(t=>t.id===tx.tabId);
+      if(parent){alert('This entry belongs to a merchandise tab. Open the tab and use Delete Tab to remove the complete transaction.');openEditTab(parent.id);return;}
+      // Orphan: allow the normal transaction dialog to open so an administrator can remove it.
+      (window._m54OriginalOpenTxEdit||priorOpenTxEdit)(id);
+      var del=document.getElementById('txe-del-btn');
+      if(del){del.style.display=CU&&CU.role==='admin'?'':'none';del.textContent='Delete orphaned entry';}
+      var modal=document.querySelector('#mo-tx-edit .modal');
+      if(modal&&!modal.querySelector('.m61-orphan-note')){
+        var note=document.createElement('div');note.className='m61-orphan-note';
+        note.style.cssText='padding:9px;margin:8px 0;border:1px solid var(--warn);border-radius:8px;color:var(--warn);font-size:12px';
+        note.textContent='ORPHANED MERCHANDISE '+(tx.paymentId?'PAYMENT':'REFUND')+': its original tab no longer exists. Admin may delete this ledger entry; an audit record will be retained.';
+        modal.insertBefore(note,modal.querySelector('.mh')?modal.querySelector('.mh').nextSibling:modal.firstChild);
+      }
+      return;
+    }
+    priorOpenTxEdit(id);
+    var d=document.getElementById('txe-del-btn');if(d)d.textContent='Delete';
+  };
+  var priorDelete=window.deleteTxEdit;
+  window.deleteTxEdit=function(){
+    var id=document.getElementById('txe-id')&&document.getElementById('txe-id').value;
+    var tx=(D.transactions||[]).find(x=>x.id===id);if(!tx){priorDelete();return;}
+    if((tx.paymentId||tx.refundId)&&tx.tabId&&!((D.tabs||[]).some(t=>t.id===tx.tabId))){
+      if(isReadOnly()){blockedReadOnly();return;}
+      if(!CU||CU.role!=='admin'){alert('Only admin can delete orphaned ledger entries.');return;}
+      var kind=tx.paymentId?'payment':'refund';
+      if(!confirm('Delete this orphaned merchandise '+kind+'?\n\n'+(tx.account==='charity'?'Charity':'Club')+' account\nAmount: '+thb(tx.amount)+'\nDate: '+(tx.date||'')+'\n\nThe entry will be removed from the ledger. An audit record will be retained. No stock will be changed.'))return;
+      var snap=JSON.parse(JSON.stringify(tx));
+      audit('ORPHAN_LEDGER_DELETE','Deleted orphaned merchandise '+kind+' '+thb(tx.amount),{transaction:snap},{orphaned:true});
+      D.transactions=D.transactions.filter(x=>x.id!==id);save();closeM('mo-tx-edit');renderAll();return;
+    }
+    // Completed merchandise sale: void the sale and every linked payment/refund exactly once.
+    if(tx.category==='merchandise'&&tx.direction!=='out'&&!tx.paymentId&&!tx.refundId&&!tx.tabId){
+      if(isReadOnly()){blockedReadOnly();return;}
+      if(!CU||CU.role!=='admin'){alert('Only admin can delete merchandise sales.');return;}
+      var saleId=tx.saleId, linked=(D.transactions||[]).filter(x=>x.id!==tx.id&&!x.voided&&((saleId&&x.saleId===saleId)||x.parentSaleId===tx.id));
+      var payTotal=linked.filter(x=>x.direction==='in').reduce((a,x)=>a+Number(x.amount||0),0);
+      var refundTotal=linked.filter(x=>x.direction==='out').reduce((a,x)=>a+Number(x.amount||0),0);
+      var lines=m54Lines(tx),before=JSON.parse(JSON.stringify(tx)),linkedBefore=linked.map(x=>JSON.parse(JSON.stringify(x)));
+      if(!confirm('Delete this completed merchandise sale and all linked entries?\n\nSale: '+thb(tx.amount)+'\nLinked payments: '+thb(payTotal)+'\nLinked refunds: '+thb(refundTotal)+'\nLinked ledger entries to void: '+linked.length+'\n\nStock will be restored once. All related financial entries will be marked VOID and an audit record retained.'))return;
+      lines.forEach(l=>adjStock(l.productId,l.variantId,l.size||null,l.colour||'',-Number(l.qty||0),'sold'));
+      tx.voided=true;tx.voidedAt=ni();tx.voidedBy=CU.name;
+      linked.forEach(x=>{if(!x.voided){x.voided=true;x.voidedAt=ni();x.voidedBy=CU.name;}});
+      // Mark matching tab/payment objects reversed too, preventing a later second reversal.
+      (D.tabs||[]).filter(t=>(saleId&&t.saleId===saleId)||t.id===tx.tabId).forEach(t=>{
+        (t.payments||[]).forEach(q=>{q.reversed=true;q.reversedAt=ni();q.reversedBy=CU.name;});
+        (t.refunds||[]).forEach(q=>{q.reversed=true;q.reversedAt=ni();q.reversedBy=CU.name;});
+      });
+      audit('MERCHANDISE_DELETE','Voided completed merchandise sale '+tx.description+' and '+linked.length+' linked entries',{sale:before,linked:linkedBefore},{stockRestored:true,linkedEntriesVoided:linked.length});
+      save();closeM('mo-tx-edit');renderAll();return;
+    }
+    priorDelete();
   };
 })();
 </script>
