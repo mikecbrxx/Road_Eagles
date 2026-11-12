@@ -196,7 +196,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.61</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.62</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -1446,7 +1446,7 @@ function setMV(v){MV=v;document.getElementById('mvt-cat').classList.toggle('on',
 function renderAll(){renderDash();renderLedger();renderMembers();renderMerch();renderStock();renderTabLedger();renderEvents();renderPOs();renderStockMgr();renderSuppliers();renderProducts();}
 
 // Utils
-function thb(n){return'&#3647;'+(Math.round(n)||0).toLocaleString();}
+function thb(n){return'฿'+(Math.round(n)||0).toLocaleString();}
 // Signed currency display for net/balance figures that can go negative
 // (e.g. a projected loss). Puts the minus sign before the symbol
 // ("-฿1,450") instead of thb()'s raw "฿-1,450", and never silently hides
@@ -4927,7 +4927,7 @@ window.m54RecordRefund=function(tabId){if(isReadOnly()){blockedReadOnly();return
 
 
 <script>
-// v3.61 - administrator cleanup for orphaned merchandise ledger entries and complete sale-linked voiding
+// v3.62 - administrator cleanup for orphaned merchandise ledger entries and complete sale-linked voiding
 (function(){
   var priorOpenTxEdit=window.openTxEdit;
   window.openTxEdit=function(id){
@@ -4985,6 +4985,36 @@ window.m54RecordRefund=function(tabId){if(isReadOnly()){blockedReadOnly();return
       save();closeM('mo-tx-edit');renderAll();return;
     }
     priorDelete();
+  };
+})();
+</script>
+
+
+<script>
+// v3.62 - consistent action spacing and native baht symbol in confirmation dialogs
+(function(){
+  var priorOpenEditTab=window.openEditTab;
+  window.openEditTab=function(id){
+    priorOpenEditTab(id);
+    var modal=document.querySelector('#mo-sale .modal');
+    if(!modal)return;
+    var buttons=Array.from(modal.querySelectorAll('button'));
+    var actionButtons=buttons.filter(function(b){
+      var label=(b.textContent||'').trim();
+      return label.indexOf('Add Payment')>=0 || label.indexOf('Delete Tab')>=0 || label==='Save Changes' || label.indexOf('Undo unsaved changes')>=0;
+    });
+    actionButtons.forEach(function(b){
+      b.style.setProperty('display','block','important');
+      b.style.setProperty('width','100%','important');
+      b.style.setProperty('margin-top','0','important');
+      b.style.setProperty('margin-bottom','10px','important');
+      b.style.setProperty('box-sizing','border-box','important');
+      // The Add Payment button is nested in a form-group; remove that group's
+      // default bottom gap so all action buttons use the same 10px rhythm.
+      if((b.textContent||'').indexOf('Add Payment')>=0 && b.parentElement){
+        b.parentElement.style.setProperty('margin-bottom','10px','important');
+      }
+    });
   };
 })();
 </script>
