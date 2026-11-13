@@ -196,7 +196,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.65</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.66</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -5089,6 +5089,78 @@ window.m54RecordRefund=function(tabId){if(isReadOnly()){blockedReadOnly();return
     var reports={event:rEvent,monthly:rMonth,meeting:rMeeting,annual:rAnnual,membership:rMem,merchandise:rMerch,stock:rStock,tabs:rTabs,donations:rDon,suppliers:rSup,cogs:rCOGS,analysis:rAnalysis,audit:rAudit,stockvalue:rStockValue};
     var render=reports[reportType];
     if(render)body.innerHTML=render();
+  };
+})();
+</script>
+
+
+<script>
+// v3.66 - exclude voided records from every financial/event calculation and serialize cloud writes.
+(function(){
+  // One authoritative rule: a voided transaction must never contribute to any total.
+  var priorConfirmed=window.isConfirmed;
+  window.isConfirmed=function(t){return !!t&&!t.voided&&priorConfirmed(t);};
+
+  // Event reports use their own transaction selection rather than isConfirmed.
+  var priorRenderEventReport=window.renderEventReport;
+  window.renderEventReport=function(){
+    var evId=document.getElementById('rev-sel')&&document.getElementById('rev-sel').value;
+    if(!evId){return priorRenderEventReport();}
+    // Temporarily exclude voided records from the event report's source collection.
+    var original=D.transactions;
+    try{
+      D.transactions=original.filter(function(t){return !t.voided;});
+      return priorRenderEventReport();
+    }finally{D.transactions=original;}
+  };
+
+  // Supabase writes must never overlap. If another save is requested while a
+  // write is in flight, finish the current request, then send the newest full
+  // snapshot. This prevents an older request completing last and overwriting
+  // a newer deletion/update.
+  var syncRunning=false, syncRequested=false, syncCallbacks=[];
+  window.syncToSupabase=function(onDone){
+    if(onDone)syncCallbacks.push(onDone);
+    syncRequested=true;
+    if(syncRunning)return;
+    syncRunning=true;
+    var sb=document.getElementById('syncing-bar');
+    if(sb)sb.style.display='';
+    setDot('syncing');
+    function finish(ok){
+      syncRunning=false;
+      if(sb)sb.style.display='none';
+      if(ok){setDot('online');}
+      else{setDot('offline');showOffline();}
+      var cbs=syncCallbacks.splice(0);
+      cbs.forEach(function(cb){try{cb(ok);}catch(e){console.warn('Sync callback failed',e);}});
+    }
+    function pump(){
+      if(!syncRequested){finish(true);return;}
+      syncRequested=false;
+      var url=D.supabaseUrl&&D.supabaseUrl.trim();
+      var key=D.supabaseKey&&D.supabaseKey.trim();
+      if(!url||!key){finish(false);return;}
+      var base=url.charAt(url.length-1)==='/'?url.slice(0,-1):url;
+      var syncData=JSON.parse(JSON.stringify(D));
+      delete syncData.supabaseUrl;delete syncData.supabaseKey;
+      var payload=JSON.stringify({id:'main',data:syncData,updated_at:new Date().toISOString()});
+      fetch(base+'/rest/v1/club_data',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','apikey':key,'Authorization':'Bearer '+key,'Prefer':'resolution=merge-duplicates,return=minimal'},
+        body:payload
+      }).then(function(r){
+        if(!r.ok)return r.text().then(function(t){throw new Error('HTTP '+r.status+': '+t);});
+        // A save requested during this request is sent only after this one ends.
+        if(syncRequested){pump();return;}
+        finish(true);
+      }).catch(function(e){
+        console.warn('Sequential Supabase sync failed:',e.message);
+        if(CU&&CU.role==='admin')alert('Supabase sync failed. Your change is saved on this device but may not be in the cloud.\n'+e.message.slice(0,250));
+        finish(false);
+      });
+    }
+    pump();
   };
 })();
 </script>
