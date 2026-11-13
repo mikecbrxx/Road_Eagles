@@ -196,7 +196,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.64</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.65</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -5067,6 +5067,28 @@ window.m54RecordRefund=function(tabId){if(isReadOnly()){blockedReadOnly();return
     if((D.transactions||[]).length!==beforeCount){
       renderLedger();renderDash();
     }
+  };
+})();
+</script>
+
+
+<script>
+// v3.65 - refresh the currently displayed finance/report view after ledger changes.
+(function(){
+  var reportType='';
+  var priorShowReport=window.showReport;
+  window.showReport=function(type){reportType=type||'monthly';return priorShowReport(type);};
+  var priorRenderAll=window.renderAll;
+  window.renderAll=function(){
+    priorRenderAll();
+    // Reports are rendered into a separate modal and are not part of renderAll.
+    // Recalculate the active report after a transaction is voided/deleted so
+    // charity/club income totals cannot remain visually stale.
+    var body=document.getElementById('rpt-b');
+    if(!body||!reportType)return;
+    var reports={event:rEvent,monthly:rMonth,meeting:rMeeting,annual:rAnnual,membership:rMem,merchandise:rMerch,stock:rStock,tabs:rTabs,donations:rDon,suppliers:rSup,cogs:rCOGS,analysis:rAnalysis,audit:rAudit,stockvalue:rStockValue};
+    var render=reports[reportType];
+    if(render)body.innerHTML=render();
   };
 })();
 </script>
