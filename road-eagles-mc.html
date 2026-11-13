@@ -196,7 +196,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.66</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.68</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -1094,7 +1094,14 @@ function _retryStartup(){
     return r.json();
   }).then(function(rows){
     clearTimeout(timeout2);
-    if(rows&&rows.length>0&&rows[0].data&&Object.keys(rows[0].data).length>0){
+    if(localStorage.getItem('remct4_sync_pending')==='1'){
+      var localCopy=JSON.parse(localStorage.getItem('remct4')||'null');
+      if(localCopy){var clean=Object.assign({},localCopy);delete clean.supabaseUrl;delete clean.supabaseKey;
+        fetch(base+'/rest/v1/club_data',{method:'POST',headers:{'Content-Type':'application/json','apikey':key,'Authorization':'Bearer '+key,'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:'main',data:clean,updated_at:new Date().toISOString()})})
+        .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);localStorage.removeItem('remct4_sync_pending');})
+        .catch(function(e){console.warn('Pending local changes could not be pushed:',e.message);});
+      }
+    }else if(rows&&rows.length>0&&rows[0].data&&Object.keys(rows[0].data).length>0){
       var lmsg2=document.getElementById('loading-msg');
       if(lmsg2)lmsg2.textContent='Data loaded ✓';
       D=_migrateD(rows[0].data,url,key);
@@ -1140,7 +1147,16 @@ function _retryStartup(){
   })
   .then(function(rows){
     clearTimeout(timeout);
-    if(rows&&rows.length>0&&rows[0].data&&Object.keys(rows[0].data).length>0){
+    if(localStorage.getItem('remct4_sync_pending')==='1'){
+      // A previous local save was not confirmed. Preserve and push that local snapshot;
+      // never replace it with the older cloud copy during startup.
+      var localCopy=JSON.parse(localStorage.getItem('remct4')||'null');
+      if(localCopy){var clean=Object.assign({},localCopy);delete clean.supabaseUrl;delete clean.supabaseKey;
+        fetch(base+'/rest/v1/club_data',{method:'POST',headers:{'Content-Type':'application/json','apikey':key,'Authorization':'Bearer '+key,'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:'main',data:clean,updated_at:new Date().toISOString()})})
+        .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);localStorage.removeItem('remct4_sync_pending');})
+        .catch(function(e){console.warn('Pending local changes could not be pushed:',e.message);});
+      }
+    } else if(rows&&rows.length>0&&rows[0].data&&Object.keys(rows[0].data).length>0){
       // Remote has data - use it as authoritative source
       var lmsg4=document.getElementById('loading-msg');
       if(lmsg4)lmsg4.textContent='Data loaded ✓';
@@ -5161,6 +5177,115 @@ window.m54RecordRefund=function(tabId){if(isReadOnly()){blockedReadOnly();return
       });
     }
     pump();
+  };
+})();
+</script>
+
+
+<script>
+// v3.68 - apply voided-transaction exclusion to the dashboard Event Overview.
+(function(){
+  var priorRenderDashEvent=window.renderDashEvent;
+  window.renderDashEvent=function(){
+    // The dashboard's event overview calculates its own totals and previously
+    // bypassed isConfirmed(), allowing voided entries to remain in event totals.
+    var sel=document.getElementById('db-ev-sel');
+    if(!sel||!sel.value)return priorRenderDashEvent();
+    var original=D.transactions;
+    try{
+      D.transactions=(original||[]).filter(function(t){return !t.voided;});
+      return priorRenderDashEvent();
+    }finally{D.transactions=original;}
+  };
+  // The dashboard's pending-event banner also reads transactions directly.
+  var priorRenderDashEventSel=window.renderDashEventSel;
+  window.renderDashEventSel=function(){
+    var original=D.transactions;
+    try{
+      D.transactions=(original||[]).filter(function(t){return !t.voided;});
+      return priorRenderDashEventSel();
+    }finally{D.transactions=original;}
+  };
+})();
+</script>
+
+
+<script>
+// v3.68 - reliable financial event balances and durable sequential cloud sync.
+(function(){
+  function liveTxs(){return (D.transactions||[]).filter(function(t){return !t.voided;});}
+  function outstandingTab(t){
+    var paid=(t.payments||[]).filter(function(p){return !p.reversed;}).reduce(function(a,p){return a+Number(p.amount||0);},0);
+    if(!Array.isArray(t.payments)&&t.settled)paid=Number(t.amount||0);
+    var refunded=(t.refunds||[]).filter(function(r){return !r.reversed;}).reduce(function(a,r){return a+Number(r.amount||0);},0);
+    return Math.max(0,Number(t.amount||0)-paid+refunded);
+  }
+  // Event dashboard and report: count only live transactions and only the unpaid
+  // remainder of each tab. Initial/second payments are already separate ledger income.
+  function withCleanEventData(fn){
+    var tx=D.transactions,tabs=D.tabs;
+    D.transactions=liveTxs();
+    D.tabs=(tabs||[]).map(function(t){var b=outstandingTab(t);return Object.assign({},t,{amount:b,settled:b<=0.009});});
+    try{return fn();}finally{D.transactions=tx;D.tabs=tabs;}
+  }
+  var oldDash=window.renderDashEvent;
+  if(oldDash)window.renderDashEvent=function(){return withCleanEventData(oldDash);};
+  var oldDashSel=window.renderDashEventSel;
+  if(oldDashSel)window.renderDashEventSel=function(){return withCleanEventData(oldDashSel);};
+  var oldEventReport=window.renderEventReport;
+  if(oldEventReport)window.renderEventReport=function(){return withCleanEventData(oldEventReport);};
+
+  // One writer at a time; every save request is coalesced into the newest snapshot.
+  // A failed upload leaves a durable local pending marker. Startup/reconnect pushes
+  // that local snapshot rather than replacing it with stale cloud data.
+  var running=false,requested=false,callbacks=[];
+  window.syncToSupabase=function(onDone){
+    if(onDone)callbacks.push(onDone);
+    requested=true;
+    localStorage.setItem('remct4_sync_pending','1');
+    _syncPending=true;
+    if(running)return;
+    running=true;
+    var bar=document.getElementById('syncing-bar');if(bar)bar.style.display='';
+    setDot('syncing');
+    function finish(ok,err){
+      running=false;
+      if(bar)bar.style.display='none';
+      if(ok){_syncPending=false;localStorage.removeItem('remct4_sync_pending');setDot('online');}
+      else{_syncPending=true;localStorage.setItem('remct4_sync_pending','1');setDot('offline');showOffline();if(err&&CU&&CU.role==='admin')alert('Cloud save not confirmed. Your data remains on this device and will be retried on reconnection.\n'+String(err).slice(0,240));}
+      var c=callbacks.splice(0);c.forEach(function(f){try{f(ok);}catch(e){console.warn(e);}});
+    }
+    function pump(){
+      if(!requested){finish(true);return;}
+      requested=false;
+      var url=D.supabaseUrl&&D.supabaseUrl.trim(),key=D.supabaseKey&&D.supabaseKey.trim();
+      if(!url||!key){finish(false,'Supabase credentials are missing');return;}
+      var base=url.replace(/\/$/,''),snapshot=JSON.parse(JSON.stringify(D));
+      delete snapshot.supabaseUrl;delete snapshot.supabaseKey;
+      fetch(base+'/rest/v1/club_data',{method:'POST',headers:{'Content-Type':'application/json','apikey':key,'Authorization':'Bearer '+key,'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:'main',data:snapshot,updated_at:new Date().toISOString()})})
+      .then(function(r){if(!r.ok)return r.text().then(function(t){throw new Error('HTTP '+r.status+' '+t);});if(requested){pump();return;}finish(true);})
+      .catch(function(e){console.warn('Cloud sync failed:',e);if(requested){pump();return;}finish(false,e.message);});
+    }
+    pump();
+  };
+  // If the old reconnect listener attempts a cloud pull while local data is pending,
+  // intercept it and push the local snapshot instead.
+  var oldLoad=window.loadFromSupabase;
+  window.loadFromSupabase=function(cb){
+    if(localStorage.getItem('remct4_sync_pending')==='1'||_syncPending){
+      window.syncToSupabase(function(ok){if(cb)cb(ok?'local-pushed':'local-push-failed');});
+      return;
+    }
+    return oldLoad(cb);
+  };
+  // Ensure every save stores a durable marker before the network request begins.
+  var oldSave=window.save;
+  window.save=function(){
+    D.updated_at=new Date().toISOString();
+    localStorage.setItem('remct4',JSON.stringify(D));
+    localStorage.setItem('remct4_sync_pending','1');
+    if(!navigator.onLine)showOffline();
+    window.syncToSupabase();
   };
 })();
 </script>
