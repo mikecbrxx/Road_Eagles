@@ -196,7 +196,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.70</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.71</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -5368,6 +5368,135 @@ window.m54RecordRefund=function(tabId){if(isReadOnly()){blockedReadOnly();return
     }
     return priorOpenTxEdit(id);
   };
+})();
+</script>
+
+
+<script>
+// v3.71 - restore the baseline responsibility behaviour without changing
+// customer pricing, payment handling, stock movements or tab payment records.
+(function(){
+  // The original app stores application users separately from club members.
+  // Mike is an app user but is not in D.members; therefore a member-list
+  // default can never reliably represent the logged-in responsible person.
+  function m71UserOption(){
+    var name=String(CU&&CU.name||'').trim();
+    return name?'<option value="__current_user__">'+htmlEsc(name)+' (logged in)</option>':'';
+  }
+  function m71Selected(){
+    var el=document.getElementById('sale-tab-member');
+    if(!el)return {id:'',name:String(CU&&CU.name||'')};
+    var val=el.value;
+    if(val==='__current_user__')return {id:'',name:String(CU&&CU.name||'')};
+    var mem=(D.members||[]).find(function(x){return x.id===val;});
+    return {id:mem?mem.id:'',name:mem?mem.name:''};
+  }
+  function m71SetSelection(name,legacyId){
+    var el=document.getElementById('sale-tab-member');if(!el)return;
+    var wanted=String(name||'').trim().toLocaleLowerCase();
+    if(wanted&&CU&&wanted===String(CU.name||'').trim().toLocaleLowerCase()){
+      el.value='__current_user__';return;
+    }
+    if(legacyId&&Array.from(el.options).some(function(o){return o.value===legacyId;})){
+      el.value=legacyId;return;
+    }
+    var match=Array.from(el.options).find(function(o){return o.textContent.trim().toLocaleLowerCase()===wanted;});
+    el.value=match?match.value:(CU?'__current_user__':'');
+  }
+  // Keep the field's existing id so the rest of the UI remains compatible.
+  // Its meaning is the responsible person, not the merchandise customer.
+  var oldBuild=window.m54BuildModal;
+  window.m54BuildModal=function(title,kind){
+    oldBuild(title,kind);
+    var el=document.getElementById('sale-tab-member');if(!el)return;
+    var memberOptions=Array.from(el.options).map(function(o){return o.outerHTML;}).join('');
+    el.innerHTML=m71UserOption()+memberOptions;
+    if(kind==='new')el.value=CU?'__current_user__':(el.options[0]?el.options[0].value:'');
+  };
+  var oldOpenSale=window.openSaleModal;
+  window.openSaleModal=function(){
+    oldOpenSale();
+    m71SetSelection(CU&&CU.name,'');
+  };
+  // New order: only the Customer Type controls member/visitor pricing and
+  // member-only eligibility. The responsible-person field is not a customer.
+  window.m54SaveNewSale=function(){
+    if(isReadOnly()){blockedReadOnly();return;}
+    if(!_m54Lines.length){alert('Add at least one item.');return;}
+    var responsible=m71Selected();
+    for(var i=0;i<_m54Lines.length;i++){
+      var l=_m54Lines[i],p=D.products.find(function(x){return x.id===l.productId;});
+      if(!p||!p.variants.some(function(v){return v.id===l.variantId;})||!Number.isInteger(Number(l.qty))||l.qty<1||Number(l.unitPrice)<0){alert('Check item '+(i+1));return;}
+      if(p.memberOnly&&_cu!=='member'){alert(p.name+' is available at member pricing only. Select Member pricing to continue.');return;}
+    }
+    var lines=_m54Lines.map(function(l){return Object.assign({},l);});
+    var total=m54Total(lines),date=document.getElementById('sale-date').value;
+    var account=document.getElementById('sale-account').value,eventId=document.getElementById('sale-ev').value;
+    var notes=document.getElementById('sale-notes').value.trim(),desc=lines.map(m54Desc).join('; ');
+    var mode=_payMode,initial=0;
+    if(mode==='partial'||mode==='tab'){
+      initial=Number(document.getElementById('m54-initial-payment').value||0);
+      if(!Number.isFinite(initial)||initial<0||initial>total+0.009){alert('Initial payment must be between zero and '+thb(total)+'.');return;}
+      if(mode==='partial'&&initial<=0){alert('Enter the part payment received now.');return;}
+    }
+    // All checks complete before stock or financial data is changed.
+    lines.forEach(function(l){adjStock(l.productId,l.variantId,l.size||null,l.colour||'',l.qty,'sold');});
+    if(mode==='partial'||mode==='tab'){
+      var saleId=uid();
+      var t={id:uid(),saleId:saleId,lines:lines,account:account,memberId:responsible.id,memberName:responsible.name||'Unknown',responsibleMemberId:responsible.id,responsibleMemberName:responsible.name,description:desc,amount:total,date:date,created:ni(),enteredBy:CU.name,settled:false,eventId:eventId,notes:notes,payments:[],refunds:[],version:1};
+      D.tabs.push(t);
+      if(initial)m54RecordPayment(t,initial,date,mode==='partial'?'Initial part payment':'Initial payment');
+      audit('SALE_TAB_CREATE',desc+' '+thb(total),null,{tabId:t.id,saleId:saleId,initialPayment:initial,outstanding:m54Balance(t)});
+    }else{
+      D.transactions.push({id:uid(),saleId:uid(),lines:lines,account:account,direction:'in',category:'merchandise',amount:total,description:desc,date:date,created:ni(),notes:notes,enteredBy:CU.name,eventId:eventId,responsibleMemberId:responsible.id||'',responsibleMemberName:responsible.name||''});
+      audit('SALE_CREATE',desc+' '+thb(total));
+    }
+    save();closeM('mo-sale');renderAll();
+  };
+  // Tab amendments retain the responsible person independently of the
+  // customer-type/price setting. Stock reconciliation remains unchanged.
+  window.m54SaveEdit=function(){
+    if(isReadOnly()){blockedReadOnly();return;}
+    var t=D.tabs.find(function(x){return x.id===_m54TabId;});if(!t||!_m54Lines.length)return;
+    var old=m54Lines(t),next=_m54Lines.map(function(l){return Object.assign({},l);});
+    for(var i=0;i<next.length;i++){
+      var p=D.products.find(function(x){return x.id===next[i].productId;});
+      if(!p||!p.variants.some(function(v){return v.id===next[i].variantId;})||!Number.isInteger(Number(next[i].qty))||next[i].qty<1||Number(next[i].unitPrice)<0){alert('Check item '+(i+1));return;}
+      if(p.memberOnly&&next[i].customerType==='visitor'){alert(p.name+' is available at member pricing only.');return;}
+    }
+    var responsible=m71Selected(),paid=m54Paid(t),total=m54Total(next);
+    m54StockDelta(old,next);t.lines=next;t.amount=total;t.description=next.map(m54Desc).join('; ');
+    t.date=document.getElementById('sale-date').value;t.account=document.getElementById('sale-account').value;
+    (t.payments||[]).forEach(function(pay){if(pay.ledgerTxId){var linked=D.transactions.find(function(tx){return tx.id===pay.ledgerTxId;});if(linked)linked.account=t.account;}});
+    t.memberId=responsible.id;t.memberName=responsible.name||'Unknown';t.responsibleMemberId=responsible.id;t.responsibleMemberName=responsible.name;
+    t.eventId=document.getElementById('sale-ev').value;t.notes=document.getElementById('sale-notes').value.trim();
+    t.creditDue=Math.max(0,paid-m54Refunded(t)-total);t.settled=m54Balance(t)<=0.009;t.version=(t.version||0)+1;
+    audit('TAB_EDIT','Edited '+t.description,{before:JSON.parse(_m54EditSnapshot||'{}')},{lines:next,amount:total,paid:paid,creditDue:t.creditDue,responsiblePerson:responsible.name});
+    save();closeM('mo-sale');renderAll();if(t.creditDue>0)alert('Overpaid by '+thb(t.creditDue)+'. This remains customer credit/refund due; income is not erased.');
+  };
+  // Completed-sale amendment uses the same responsible-person mapping.
+  window.m54SavePaidSale=function(){
+    if(isReadOnly()){blockedReadOnly();return;}
+    var tx=D.transactions.find(function(x){return x.id===_m54SaleTxId;});if(!tx||!_m54Lines.length)return;
+    var old=m54Lines(tx),next=_m54Lines.map(function(l){return Object.assign({},l);});
+    for(var i=0;i<next.length;i++){
+      var p=D.products.find(function(x){return x.id===next[i].productId;});
+      if(!p||!p.variants.some(function(v){return v.id===next[i].variantId;})||!Number.isInteger(Number(next[i].qty))||next[i].qty<1||Number(next[i].unitPrice)<0){alert('Check item '+(i+1));return;}
+      if(p.memberOnly&&next[i].customerType==='visitor'){alert(p.name+' is available at member pricing only.');return;}
+    }
+    var responsible=m71Selected();m54StockDelta(old,next);var before=JSON.parse(_m54EditSnapshot||'{}');
+    tx.lines=next;tx.amount=m54Total(next);tx.description=next.map(m54Desc).join('; ');tx.date=document.getElementById('sale-date').value;
+    tx.account=document.getElementById('sale-account').value;tx.eventId=document.getElementById('sale-ev').value;tx.notes=document.getElementById('sale-notes').value.trim();
+    tx.responsibleMemberId=responsible.id||'';tx.responsibleMemberName=responsible.name||'';
+    audit('SALE_EDIT','Amended completed sale '+tx.description,{before:before},{amount:tx.amount,lines:next,responsiblePerson:responsible.name});
+    save();closeM('mo-sale');renderAll();
+  };
+  // When editing existing records, restore their previously recorded
+  // responsible person; for new records the logged-in user is selected.
+  var oldEditTab=window.openEditTab;
+  window.openEditTab=function(id){oldEditTab(id);var t=(D.tabs||[]).find(function(x){return x.id===id;});if(t)m71SetSelection(t.responsibleMemberName||t.memberName,t.responsibleMemberId||t.memberId);};
+  var oldEditPaid=window.m54EditPaidSale;
+  window.m54EditPaidSale=function(id){oldEditPaid(id);var t=(D.transactions||[]).find(function(x){return x.id===id;});if(t)m71SetSelection(t.responsibleMemberName,t.responsibleMemberId);};
 })();
 </script>
 
