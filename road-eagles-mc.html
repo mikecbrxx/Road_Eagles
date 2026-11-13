@@ -196,7 +196,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.68</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.69</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -5286,6 +5286,52 @@ window.m54RecordRefund=function(tabId){if(isReadOnly()){blockedReadOnly();return
     localStorage.setItem('remct4_sync_pending','1');
     if(!navigator.onLine)showOffline();
     window.syncToSupabase();
+  };
+})();
+</script>
+
+
+<script>
+// v3.69 - hide voided recent transactions and make merchandise stock reversal idempotent.
+(function(){
+  // A voided transaction is retained for audit, but must never be presented as
+  // an actionable recent transaction. Filter before taking the eight newest so
+  // older live entries fill the space left by voided records.
+  var previousRenderDash=window.renderDash;
+  if(previousRenderDash)window.renderDash=function(){
+    previousRenderDash();
+    var host=document.getElementById('db-tx');
+    if(!host)return;
+    var recent=(D.transactions||[]).filter(function(t){return !t.voided;}).slice().reverse().slice(0,8);
+    host.innerHTML=recent.length?recent.map(txCard).join(''):'<div class="empty"><div class="ei">&#128203;</div>No transactions yet</div>';
+  };
+
+  // Prevent opening a retained VOID transaction from a stale card or stale UI.
+  var previousOpenTxEdit=window.openTxEdit;
+  window.openTxEdit=function(id){
+    var tx=(D.transactions||[]).find(function(t){return t.id===id;});
+    if(tx&&tx.voided){
+      alert('This transaction has already been deleted/voided. Stock has already been restored.');
+      renderAll();
+      return;
+    }
+    return previousOpenTxEdit(id);
+  };
+
+  // Critical idempotency guard: earlier delete wrappers restore stock before
+  // marking a merchandise transaction VOID. If a stale Home card is clicked
+  // again, stop here so stock can never be credited a second time.
+  var previousDeleteTxEdit=window.deleteTxEdit;
+  window.deleteTxEdit=function(){
+    var id=document.getElementById('txe-id')&&document.getElementById('txe-id').value;
+    var tx=(D.transactions||[]).find(function(t){return t.id===id;});
+    if(tx&&tx.voided){
+      alert('This transaction has already been deleted/voided. No further stock adjustment is required.');
+      closeM('mo-tx-edit');
+      renderAll();
+      return;
+    }
+    return previousDeleteTxEdit();
   };
 })();
 </script>
