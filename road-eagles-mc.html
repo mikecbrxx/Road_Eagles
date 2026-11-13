@@ -196,7 +196,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.69</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.70</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -5332,6 +5332,41 @@ window.m54RecordRefund=function(tabId){if(isReadOnly()){blockedReadOnly();return
       return;
     }
     return previousDeleteTxEdit();
+  };
+})();
+</script>
+
+
+<script>
+// v3.70 - default merchandise responsible member to the logged-in person;
+// give a clear deletion instruction for payments belonging to completed orders.
+(function(){
+  var priorOpenSaleModal=window.openSaleModal;
+  window.openSaleModal=function(){
+    priorOpenSaleModal();
+    var sel=document.getElementById('sale-tab-member');
+    if(!sel||!CU)return;
+    // Responsible person is the logged-in club user, not the first member
+    // in the alphabetical/member list. Match by exact display name.
+    var name=String(CU.name||'').trim().toLocaleLowerCase();
+    var match=Array.from(sel.options).find(function(o){
+      return String(o.textContent||'').trim().toLocaleLowerCase()===name;
+    });
+    if(match)sel.value=match.value;
+  };
+
+  var priorOpenTxEdit=window.openTxEdit;
+  window.openTxEdit=function(id){
+    var tx=(D.transactions||[]).find(function(x){return x.id===id;});
+    if(tx&&(tx.paymentId||tx.refundId)&&tx.tabId){
+      var parent=(D.tabs||[]).find(function(t){return t.id===tx.tabId;});
+      if(parent&&m54Balance(parent)<=0.009){
+        alert('This payment belongs to a completed merchandise order. The order is being opened. To remove it, use “Delete Tab”; this will delete the complete order and all its linked payments together.');
+        openEditTab(parent.id);
+        return;
+      }
+    }
+    return priorOpenTxEdit(id);
   };
 })();
 </script>
